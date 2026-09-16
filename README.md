@@ -225,8 +225,11 @@ node tests/assert-discovery.mjs # the Skills CLI finds exactly two skills
 
 ## Status and limitations
 
-- Written and tested primarily against Claude Code. The frontmatter uses only fields that are either in the Agent
-  Skills specification or harmless to clients that ignore them, but other clients have not been verified.
+- Written and tested primarily against Claude Code. The skills use `disable-model-invocation: true` and
+  `user-invocable: true` to guarantee that a learning session only starts when you ask for one. Those are Claude
+  Code fields, not part of the portable Agent Skills subset, so other clients may accept the skills without
+  honouring that restriction. See [`docs/architecture.md`](docs/architecture.md) for the measurement behind this
+  and the alternative that was rejected.
 - The workspace may be moved between machines by copying the directory. After a move, tell the mentor the new
   path once; it will update its registry.
 - The mentor cannot verify anything you do outside the session. Evidence is whatever you show it.

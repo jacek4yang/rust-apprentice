@@ -331,8 +331,9 @@ check("CI workflow exists and runs the checks", () => {
   const workflow = join(ROOT, ".github", "workflows", "ci.yml");
   if (!existsSync(workflow)) return "missing .github/workflows/ci.yml";
   const text = readFileSync(workflow, "utf8");
-  if (!text.includes("repo-checks.mjs")) return "CI does not run tests/repo-checks.mjs";
-  return null;
+  const required = ["repo-checks.mjs", "validate-skills.mjs", "assert-discovery.mjs"];
+  const missing = required.filter((script) => !text.includes(script));
+  return missing.length ? `CI does not run: ${missing.join(", ")}` : null;
 });
 
 check("eval suite covers the required learner situations", () => {
