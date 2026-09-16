@@ -14,7 +14,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const EXPECTED = ["rust-learn-continue", "rust-learn-init"];
+const EXPECTED = ["rust-learn-continue", "rust-learn-init", "rust-learn-status"];
 
 let output;
 try {

@@ -125,12 +125,12 @@ Into `learner/profile.md`:
 - Their claims, labelled as claims, with the date.
 - The probes you ran, briefly, and what happened.
 - Provisional starting phase.
-- English stage (A, per [english.md](../../rust-learn-continue/references/english.md)).
+- English stage (A, per [engineering-english.md](../../rust-learn-continue/references/curriculum/engineering-english.md)).
 
 Into `learner/evidence/rust.md` (create it):
 
 - One entry per probe, in the factual style of
-  [assessment.md](../../rust-learn-continue/references/assessment.md).
+  [assessment.md](../../rust-learn-continue/references/core/assessment.md).
 
 Example:
 

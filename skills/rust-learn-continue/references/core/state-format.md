@@ -5,60 +5,72 @@ Every learner-written file the mentor maintains. Keep these schemas; do not rest
 Rule of thumb: if a file is read every session, its size must be bounded. If it grows without bound, it is not a
 current-state file and belongs in `learner/evidence/` or `archive/`.
 
+State is split into a hot tier (read every session, bounded forever), a warm tier (read on demand), and cold
+history. [context-budget.md](context-budget.md) explains the loading discipline; this file is the schemas.
+
+| File | Tier | Read |
+| :--- | :--- | :--- |
+| `rust-apprentice.yaml` | hot | every session |
+| `state/learner-model.md` | hot | every session |
+| `state/progress.md` | hot | every session |
+| `state/review-queue.md` | hot | every session |
+| `state/log.md` | hot | last few lines |
+| `state/sessions/<date>.md` | warm | newest one or two |
+| `learner/profile.md` | warm | every session |
+| `learner/goals.md` | warm | occasionally |
+| `learner/evidence/<topic>.md` | warm | on demand |
+| `plans/*.md`, `notes/*.md` | warm | on demand |
+| `archive/*` | cold | rarely |
+
 ## `state/progress.md`
 
-The single most important file. Read first, written whenever current work changes. Keep it under ~80 lines.
+The work in flight: the current objective, its exact next action, blockers, and anything paused. Keep it under
+~60 lines. Domain-level mastery lives in [learner-model.md](learner-model.md), not here.
 
 ```markdown
 # Progress
 
 updated: 2026-09-16
-stage: beginner | developing | intermediate | advanced
-phase: fundamentals | applied | project | systems
+phase: applied
 
-## Current
+## Objective
 
-topic: Result and the ? operator
-task: Implement `parse_record` so it returns `Result<Record, ParseError>`
+Implement `parse_record` so it returns `Result<Record, ParseError>` instead of panicking.
 started: 2026-09-15
-status: in-progress | blocked | awaiting-learner | done
-blocked_on: (empty, or one line)
+status: in-progress
 
 ## Next action
 
 Rewrite `parse_record` to propagate errors with `?` instead of matching every arm by hand.
-Then we look at mapping the error type with `map_err`.
-
-## Mastery
-
-| Concept | State | Last evidence |
-| :--- | :--- | :--- |
-| ownership and moves | independently-demonstrated | 2026-09-10 |
-| borrowing rules | practiced | 2026-09-14 |
-| Result and ? | guided | 2026-09-15 |
-| iterators | introduced | 2026-09-07 |
-
-## Active weaknesses
-
-- Confuses `Arc` (shared ownership) with `Mutex` (mutual exclusion). Seen twice.
-- Reaches for `.clone()` to silence borrow errors instead of restructuring.
+Then discuss mapping the error type with `map_err`.
 
 ## Blockers
 
 - (empty)
 
-## Recently retired
+## Paused
 
-- `match` exhaustiveness — retrieved correctly three times, 2026-08-29.
+- async downloader — paused 2026-09-12 to repair `Send`/`Sync` understanding. Resumes when
+  concurrency reaches `practiced`.
 ```
 
 Notes:
 
-- `Mastery` holds only concepts that are currently being worked on or recently demonstrated. Everything else
-  lives in evidence. Aim for 8–20 rows; if it exceeds 25, retire rows.
-- States are exactly those in [assessment.md](assessment.md). No numbers.
-- `Next action` is what the next session does first. It must be concrete enough to start without thinking.
-- When a topic is finished, move its rows out to `learner/evidence/` and record a one-line summary in `log.md`.
+- `phase` is one of `fundamentals`, `applied`, `project`, `systems`.
+- `status` is one of `in-progress`, `blocked`, `awaiting-learner`, `done`.
+- `Next action` must be concrete enough to start without thinking. It is the most important line in the
+  workspace.
+- Domain mastery is **not** recorded here. Two copies will drift.
+- `Paused` exists so an advanced objective interrupted for a prerequisite can be resumed rather than quietly
+  abandoned. Record what resumes it.
+- When an objective finishes: move the detail to `learner/evidence/`, update the domain in the learner model, and
+  append one line to `log.md`.
+
+## `state/learner-model.md`
+
+The compact index: stage, domain mastery, weaknesses, current work. Schema and rules are in
+[learner-model.md](learner-model.md). Read every session; it is what makes loading the full curriculum
+unnecessary.
 
 ## `state/review-queue.md`
 
@@ -137,7 +149,7 @@ next: finish `map_err`, then add a failing test for an invalid record
 ## `learner/profile.md`
 
 Who the mentor is teaching. Read every session, updated rarely. Template in
-[../rust-learn-init/assets/profile.template.md](../../rust-learn-init/assets/profile.template.md).
+[../rust-learn-init/assets/profile.template.md](../../../rust-learn-init/assets/profile.template.md).
 
 Key fields: language of conversation, English level, environment, and the claims/observation split from
 initialization. Claims stay labelled as claims until evidence replaces them.
@@ -155,8 +167,8 @@ Append-only, one topic per file. Dated, factual, one or two sentences per entry.
 ## `plans/roadmap.md`
 
 The long-term shape. Updated monthly, not per session. See
-[../rust-learn-init/references/curriculum-map.md](../../rust-learn-init/references/curriculum-map.md) for the
-coverage check and [project-learning.md](project-learning.md) for the project progression.
+[../rust-learn-init/references/curriculum-map.md](../../../rust-learn-init/references/curriculum-map.md) for the
+coverage check and [project-learning.md](../curriculum/project-learning.md) for the project progression.
 
 ## Update etiquette
 

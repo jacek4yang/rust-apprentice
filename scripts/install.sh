@@ -9,7 +9,7 @@
 
 set -eu
 
-SKILLS="rust-learn-init rust-learn-continue"
+SKILLS="rust-learn-init rust-learn-continue rust-learn-status"
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPO_DIR=$(dirname -- "$SCRIPT_DIR")
 TARGET="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"

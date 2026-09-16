@@ -20,6 +20,7 @@ Exactly what `/rust-learn-init` creates, and what it deliberately does not.
 │   └── evidence/
 ├── state/
 │   ├── progress.md
+│   ├── learner-model.md
 │   ├── review-queue.md
 │   ├── log.md
 │   └── sessions/
@@ -40,14 +41,16 @@ Not created here, created on first use: `notes/`, `exercises/`, `projects/`, `re
 4. **Create the directories.** Use the platform's own tooling if you run a command at all; `Glob`/`Write` where
    possible.
 5. **Write `rust-apprentice.yaml`** using the schema in
-   [../../rust-learn-continue/references/workspace.md](../../rust-learn-continue/references/workspace.md).
+   [core/workspace.md](../../rust-learn-continue/references/core/workspace.md).
 6. **Write `README.md`** from [../assets/workspace-readme.template.md](../assets/workspace-readme.template.md),
    filled in: the learner's name if known, today's date, and the two commands.
 7. **Write `learner/profile.md`** from [../assets/profile.template.md](../assets/profile.template.md).
-8. **Write the three state files** following
-   [../../rust-learn-continue/references/state-format.md](../../rust-learn-continue/references/state-format.md):
-   `progress.md` (with the first likely topic and next action), `review-queue.md` (empty or with one probe item),
-   `log.md` (one line recording initialization).
+8. **Write the four state files** following
+   [core/state-format.md](../../rust-learn-continue/references/core/state-format.md) and
+   [core/learner-model.md](../../rust-learn-continue/references/core/learner-model.md): `progress.md` (the first
+   objective and its next action), `learner-model.md` (stage, the domains the probes touched, active
+   weaknesses), `review-queue.md` (empty, or one item from a probe), `log.md` (one line recording
+   initialization).
 9. **Write `state/sessions/<date>.md`** with a few lines on what the probes established.
 10. **Write `plans/roadmap.md`** only if the learner expressed a direction; otherwise leave `plans/` for later.
 11. **Register the workspace** in the registry (below).
@@ -59,7 +62,7 @@ in `projects/`.
 ## The registry
 
 Location and format are in
-[../../rust-learn-continue/references/workspace.md](../../rust-learn-continue/references/workspace.md). At
+[core/workspace.md](../../rust-learn-continue/references/core/workspace.md). At
 initialization:
 
 - Create the state directory if it does not exist.

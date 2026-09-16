@@ -72,8 +72,8 @@ requirement (in words)
 One slice per session is a good target; two is a fast session. A slice that spans sessions is too big — split it
 and record the remainder in `state/progress.md`.
 
-The learner does every step. You discuss, question, and review. See [teaching.md](teaching.md) and
-[tdd.md](tdd.md).
+The learner does every step. You discuss, question, and review. See [teaching.md](../core/teaching.md) and
+[tdd.md](testing.md).
 
 ## Reducing scaffolding over time
 

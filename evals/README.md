@@ -17,6 +17,10 @@ show up in a linter, so they are tested here.
 commands with no `disable-model-invocation` flag (see [`docs/architecture.md`](../docs/architecture.md) for why
 that flag is not used), so the harness sees them and the cases run against the real skills.
 
+Several cases use a `focus: files` grader to check **what was loaded**. That is deliberate: context efficiency is
+an architectural requirement of this project, and it is only testable by inspecting the files a run actually
+opened.
+
 That has one consequence worth knowing when reading results: in production the learner types the command, so the
 skill is loaded deliberately; under the harness the agent chooses it. Cases that assert the mentor keeps the
 learner active are therefore measuring the skill's constraints under slightly harder conditions than production.
@@ -67,6 +71,39 @@ Reports are written to `evals/results/<timestamp>/` and are gitignored.
 | `http-networking` | Moving into HTTP clients | HTTP concepts before `reqwest`; one API step at a time, not the whole crate |
 | `async-rust` | First async work | Prerequisites checked (`Send`/`Sync`/threads), no `async` before they are in place |
 | `becoming-independent` | Solves things unaided, writes PRs | Mentor hands over ownership, reduces scaffolding, stops teaching what is known |
+| `windows-chinese-path` | Workspace path with Chinese characters and spaces | Path handled without corruption or surprise; no unrequested move |
+| `windows-gbk-console-output` | CP936 console renders Chinese output as mojibake | Mojibake not treated as failure; no permanent code-page change; structured output preferred |
+| `windows-powershell-5` | Learner on Windows PowerShell 5.1 | Advice fits 5.1; no reliance on PowerShell 7 or on encoding defaults |
+| `curriculum-lazy-loading` | HTTP client objective | Only the networking reference is opened; no unrelated domains |
+| `context-year-of-history` | Learner with a year of history | Hot state only; no archive, no notes, no history recap |
+| `context-many-notes` | Learner with hundreds of notes | Notes are not loaded automatically |
+| `status-compact-summary` | Progress across many domains | Domains not concepts; no numbers; one screen; no bulk evidence read |
+| `status-detail-on-request` | Asks for networking detail | Detail for that area only, from that area's evidence |
+| `codebase-reading-unfamiliar` | Wants an unfamiliar repo explained | Reading method instead of a summary; the learner reads the code |
+| `crypto-api-misuse` | AEAD with a fixed nonce | Nonce reuse identified as the serious flaw; learner fixes it; no invented crypto |
+
+## A limitation you should know about
+
+The eval harness feeds the run's transcript to the judge model as text. When the mentor correctly replies in
+Chinese - which it is supposed to do at English stages A and B - that Chinese arrives at the judge as mojibake on
+a host whose locale does not match, and the judge then scores the answer as if it were nonsense.
+
+The consequence: **judge-scored graders are unreliable for cases whose correct answer is in Chinese.** This was
+measured, not assumed - the crypto case was inspected directly, and the mentor's reply correctly identified nonce
+reuse, explained the keystream and forgery consequences, flagged the `unwrap`, and handed the fix back, while the
+judge scored it 0.00 on three graders.
+
+Two mitigations are used in this suite:
+
+- **Prefer mechanical graders where the claim is mechanical.** A `regex` grader over `last_message` or the trace
+  does not care what language the reply is in. `no-numbers`, `domains-not-concepts` and `no-solution-in-reply` are
+  all structural checks for exactly this reason.
+- **Say so in the rubric.** Where a judge is still the right tool, the grader states that the response may be in
+  the learner's language and that substance is what is judged. This helps but does not fully fix it.
+
+Running the suite under a UTF-8 locale, or on a host where the judge receives the transcript correctly, is the
+real fix. Until then, treat a low score on a Chinese-language case as a prompt to **read the transcript yourself**
+before concluding the skill misbehaved. `--keep-temp` preserves it.
 
 ## Grader types used
 
