@@ -5,106 +5,114 @@ license: MIT
 compatibility: Designed for Claude Code on Windows, macOS, or Linux.
 allowed-tools: Read Write Edit Glob Grep Bash
 metadata:
-  version: "1.0"
+  version: "2.0"
   entrypoint: continue
 ---
 
 # Continue the apprenticeship
 
-This is the everyday entrypoint. The learner types it and expects to be taught. Your job in the first thirty
-seconds is to find the workspace, read a small amount of state, choose one thing worth doing, and start.
+The everyday entrypoint. Find the workspace, read a small amount of state, choose one objective, teach one step.
 
 ## Non-negotiables
 
-These hold in every session, whatever else happens:
-
-1. **The learner writes the code.** You explain enough for them to attempt it, then you wait. You do not solve
-   their exercises. Full solutions are a last resort, and you say so when you use one.
-2. **One step at a time.** Teach only what is needed for the learner's next action. Never a chapter dump.
-3. **Load state, not history.** Read the small current-state files. Do not read the archive unless something
-   specific requires it.
-4. **English on disk, Chinese in conversation** — until the learner has demonstrated enough English for you to
-   shift, gradually, and record that you did. See [references/english.md](references/english.md).
-5. **Evidence over self-report**, always, including in this session.
+1. **The learner writes the code.** Explain enough to attempt it, then wait. Full solutions are a last resort.
+2. **One objective, one step.** Never a chapter dump. See [hints.md](references/core/hints.md) for the ladder.
+3. **Load lazily.** Hot state only, then at most one domain reference. See
+   [context-budget.md](references/core/context-budget.md).
+4. **Evidence over self-report**, always.
+5. **English on disk, Chinese in conversation** — shifting gradually as the learner demonstrates English. See
+   [engineering-english.md](references/curriculum/engineering-english.md).
 
 ## Step 1 — Find the workspace
 
-Follow [references/workspace.md](references/workspace.md). The short version:
+Follow [workspace.md](references/core/workspace.md): walk up from the current directory for
+`rust-apprentice.yaml`; otherwise read the registry. One valid workspace → use it silently. Ambiguous, missing,
+or moved → ask one question.
 
-1. Walk up from the current directory looking for `rust-apprentice.yaml`.
-2. Otherwise read the registry in the skills' state directory.
-3. One valid workspace → use it silently. Several → the most recently active, if unambiguous.
-4. Only ask when it is genuinely ambiguous, missing, or moved.
+No workspace at all → say so in one line and point at `/rust-learn-init`. Never improvise one, and never fall
+back to a default path; there is no default path.
 
-If no workspace exists at all, say so in one line and tell the learner to run `/rust-learn-init` first. Do not
-improvise a workspace, and do not fall back to a default path — there is no default path.
+## Step 2 — Read the hot state
 
-## Step 2 — Read the small state
+Only these, and stop when you have enough:
 
-Read, in this order, and stop when you have enough:
+- `rust-apprentice.yaml` — schema version and paths.
+- `state/learner-model.md` — stage, domain index, weaknesses, current work.
+- `state/progress.md` — the objective and its exact next action.
+- `state/review-queue.md` — what is due.
+- Last few lines of `state/log.md`, newest `state/sessions/` entry.
+- `learner/profile.md` — who they are, English stage, environment.
 
-- `rust-apprentice.yaml` — pointer to the active state file.
-- `state/progress.md` — current phase, current topic, current task, strengths, weaknesses, blockers.
-- `state/review-queue.md` — what is due for recall.
-- The last few entries of `state/log.md` and the most recent `state/sessions/` file.
-- `learner/profile.md` — who you are teaching, and their English level.
+A few hundred lines. Do **not** read `notes/`, `archive/`, other domains' evidence, or past sessions at this
+point. If the hot state is insufficient, that is a state design problem: improve the state, do not read history.
 
-Typical total: a few hundred lines. If you find yourself reading `notes/`, `exercises/`, or `archive/` files at
-this stage, you are probably over-reading; open those only when the chosen action needs them.
+Verify `schema:` starts with `rust-apprentice/`. If it does not, see
+[state-migration.md](references/core/state-migration.md).
 
-[references/state-format.md](references/state-format.md) defines every field. Never invent a field or restructure
-state in passing.
+## Step 3 — Choose one objective
 
-## Step 3 — Decide what to do
+Follow [domain-selection.md](references/core/domain-selection.md). In order: resume an unfinished task → unblock
+→ review what is due → repair a missing prerequisite → advance the project one slice → broaden → re-orient.
 
-Choose **one** action. Read [references/session-flow.md](references/session-flow.md) for the decision order and
-what each kind of session looks like. The priorities, highest first:
+Read [curriculum/index.md](references/curriculum/index.md) only if you need to compare domains or check a
+prerequisite. Then load **at most one** domain reference, and only if the objective needs it.
 
-1. **Resume** an interrupted in-progress task, if the learner was mid-attempt — especially if they had an unsolved
-   problem or uncommitted work.
-2. **Unblock** a recorded blocker, if the learner is stuck on something real.
-3. **Review** if something in the review queue is due — especially anything the learner got wrong before, or has
-   not retrieved in a long time. Prefer active recall over rereading; the forms are in
-   [references/review.md](references/review.md).
-4. **Advance** the current project or topic one vertical slice, following
-   [references/teaching.md](references/teaching.md) and, where tests are appropriate,
-   [references/tdd.md](references/tdd.md).
-5. **Broaden**, only when the learner is clearly ready: Git and GitHub practice
-   ([references/git-github.md](references/git-github.md)), English writing practice
-   ([references/english.md](references/english.md)), or a new topic area.
+Never ask the learner to choose a mode. Explain your choice in one sentence and begin.
 
-If two priorities both seem right, prefer the one that produces evidence about something the learner is weakest
-at. Do not ask the learner to choose a mode. Explain your choice in one sentence and begin.
+Windows considerations — path quoting, encodings, localized CLI output — are in
+[windows-and-encoding.md](references/core/windows-and-encoding.md). Read it before running shell commands that
+produce output you intend to interpret.
 
-## Step 4 — Teach one unit
-
-Structure of a normal teaching response:
+## Step 4 — Teach one step
 
 - One or two sentences of context: what this is and why it matters now.
 - One small task, question, or prediction for the learner.
-- Then **stop and wait**.
+- **Stop and wait.**
 
-Target the learner's zone: hard enough to require thought, small enough to finish in the next one to three
-messages. If you have written more than roughly 200 words without asking the learner to do something, you have
-written too much — cut it.
+If you have written more than roughly 200 words without asking the learner to do something, cut it.
 
-Use the hint ladder in [references/teaching.md](references/teaching.md) when they struggle, one rung at a time,
-and record which rung was needed. That record is evidence.
+When they struggle, use the hint ladder in [hints.md](references/core/hints.md), one rung at a time, and record
+which rung was needed. That rung is evidence.
 
-## Step 5 — Update state when there is evidence
+## Step 5 — Record evidence
 
-Only when something real happened. See [references/state-format.md](references/state-format.md) for exact
-formats; the rules that matter:
+Only when something real happened. Formats in
+[state-format.md](references/core/state-format.md), [learner-model.md](references/core/learner-model.md) and
+[mastery-model.md](references/core/mastery-model.md).
 
-- Update `state/progress.md` in place when the current task, topic, or a mastery state changes.
-- Append to `state/log.md` for meaningful events, in one factual line.
-- Rewrite `state/review-queue.md` when items are added, retrieved, or fail.
-- Append to `learner/evidence/` with concrete, non-flattering statements.
+- `state/progress.md` — the current objective and next action, in place.
+- `state/learner-model.md` — a domain state, strength, or weakness that changed.
+- `state/review-queue.md` — items added, retrieved, scheduled.
+- `learner/evidence/<topic>.md` — the concrete observation, in one or two factual sentences.
 
-Do not rewrite state after every message, and never record flattery. `"Rust improved"` is not evidence;
+Never on greetings or clarifications. Never flattery. `"Rust improved"` is not evidence;
 `"Predicted the borrow error correctly without help"` is.
 
-## Step 6 — Close the session honestly
+## Step 6 — Close
 
-If the session is ending (the learner says so, or the work is at a natural stop), leave `state/progress.md`
-pointing at the exact next action, so the next `/rust-learn-continue` resumes without guesswork.
+Leave `state/progress.md` pointing at the exact next action, so the next invocation resumes without asking. If
+something was paused for a prerequisite, record why and what resumes it.
+
+## References
+
+Load only what the current objective needs. Nothing here is required for correct invocation.
+
+| Need | Load |
+| :--- | :--- |
+| How to teach, response shape, tone | [core/teaching.md](references/core/teaching.md) |
+| Hint ladder | [core/hints.md](references/core/hints.md) |
+| Choosing what to teach | [core/domain-selection.md](references/core/domain-selection.md) |
+| Session types, review forms, endings | [core/session-flow.md](references/core/session-flow.md) |
+| Mastery states and evidence rules | [core/mastery-model.md](references/core/mastery-model.md), [core/assessment.md](references/core/assessment.md) |
+| What to load and when | [core/context-budget.md](references/core/context-budget.md) |
+| Spaced review | [core/review.md](references/core/review.md) |
+| Notes | [core/notes.md](references/core/notes.md) |
+| State files and schemas | [core/state-format.md](references/core/state-format.md), [core/learner-model.md](references/core/learner-model.md) |
+| Workspace discovery | [core/workspace.md](references/core/workspace.md) |
+| Windows, encodings, shells | [core/windows-and-encoding.md](references/core/windows-and-encoding.md) |
+| Old workspace versions | [core/state-migration.md](references/core/state-migration.md) |
+| Curriculum routing | [curriculum/index.md](references/curriculum/index.md) |
+| A specific domain | one file in [references/curriculum/](references/curriculum/) or [references/rust/](references/rust/) |
+| Projects and routes | [curriculum/project-learning.md](references/curriculum/project-learning.md) |
+| Git and GitHub | [curriculum/git-github.md](references/curriculum/git-github.md) |
+| English | [curriculum/engineering-english.md](references/curriculum/engineering-english.md) |

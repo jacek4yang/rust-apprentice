@@ -34,6 +34,6 @@ jobs:
         run: node tests/validate-skills.mjs
         shell: bash
 
-      - name: Assert the Skills CLI discovers exactly two skills
+      - name: Assert the Skills CLI discovers exactly three skills
         run: node tests/assert-discovery.mjs
         shell: bash

@@ -72,7 +72,7 @@ be wrong in instructive ways.
 
 Headings, terms, code, and commands are English from the start. Prose may be written in the learner's own
 language early, with English technical terms embedded as they are learned. As the learner's stage advances
-([english.md](english.md)), shift the prose toward English, and correct their English the same way you would
+([english.md](../curriculum/engineering-english.md)), shift the prose toward English, and correct their English the same way you would
 correct their code — specifically, not generally.
 
 Never let a note become a Chinese document with English headings. The transition is gradual but it must be

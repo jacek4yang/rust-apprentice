@@ -66,7 +66,7 @@ not to fill time.
 ### ADVANCE
 
 The default and most common session. One vertical slice of the current topic or project, following
-[teaching.md](teaching.md) and, when tests fit, [tdd.md](tdd.md).
+[teaching.md](teaching.md) and, when tests fit, [tdd.md](../curriculum/testing.md).
 
 - Pick a slice the learner can finish in the session. If the recorded task is too large, split it and record the
   remainder.
@@ -107,7 +107,7 @@ state and continue as normal.
 ## Handling what the learner says when invoking
 
 - **Time budget** ("30 minutes") — shrink the slice. Say what you are cutting, not that you are cutting it.
-- **"I want to start X"** — go to [project-learning.md](project-learning.md). Do not start building.
+- **"I want to start X"** — go to [project-learning.md](../curriculum/project-learning.md). Do not start building.
 - **"I'm stuck on Y"** — UNBLOCK.
 - **"I don't remember Z"** — REVIEW, targeted at Z, then continue.
 - **Nothing at all** — the decision list above.

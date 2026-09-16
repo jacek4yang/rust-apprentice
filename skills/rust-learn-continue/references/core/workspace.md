@@ -26,7 +26,8 @@ Created by `/rust-learn-init` at a path the learner chooses. Grown lazily after 
 │   ├── roadmap.md            # long-term topic coverage and phase
 │   └── <goal-slug>.md        # a route from current ability to a specific goal
 ├── state/
-│   ├── progress.md           # the small file read at the start of every session
+│   ├── learner-model.md      # domain index: the file that makes the curriculum loadable lazily
+│   ├── progress.md           # the current objective and its exact next action
 │   ├── review-queue.md       # what is due for retrieval, and when
 │   ├── log.md                # one line per meaningful event, rolling
 │   └── sessions/<date>.md    # short per-session summary
@@ -51,10 +52,11 @@ name: Jian's Rust apprenticeship
 created: 2026-09-16
 learner: learner/profile.md
 state: state/progress.md
+learner_model: state/learner-model.md
 review_queue: state/review-queue.md
 ```
 
-`state:` and `review_queue:` are paths relative to the workspace root. Changing the layout later means editing this
+`state:`, `learner_model:` and `review_queue:` are paths relative to the workspace root. Changing the layout later means editing this
 file, and nothing else. Do not put learner content in it.
 
 ## Discovery
@@ -131,7 +133,8 @@ The split exists so a session ten years from now reads the same small amount of 
 | File | Read | Written | Typical size |
 | :--- | :--- | :--- | :--- |
 | `rust-apprentice.yaml` | every session | on move or reinit | 7 lines, fixed |
-| `state/progress.md` | every session | when current work changes | 30–80 lines, bounded |
+| `state/learner-model.md` | every session | when a domain state or weakness changes | 40–90 lines, bounded |
+| `state/progress.md` | every session | when current work changes | 30–60 lines, bounded |
 | `state/review-queue.md` | every session | when items are added, retrieved, failed | 20–60 lines, bounded |
 | `state/log.md` | last ~20 lines | one line per meaningful event | rolling, trimmed |
 | `state/sessions/<date>.md` | last 1–2 | at session end | 5–15 lines each |

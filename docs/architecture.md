@@ -4,12 +4,13 @@ How `rust-apprentice` is put together, and why.
 
 ## The shape of the product
 
-Two user-facing skills, one persistent learning workspace, and a small per-user registry.
+Three user-facing skills, one persistent learning workspace, and a small per-user registry.
 
 ```
 Claude Code
   ├── /rust-learn-init      (personal skill, user-invoked only)
-  └── /rust-learn-continue  (personal skill, user-invoked only)
+  ├── /rust-learn-continue  (personal skill, user-invoked only)
+  └── /rust-learn-status    (personal skill, user-invoked only)
 
 rust-apprentice registry  (~/.local/state/rust-apprentice/workspaces.yaml ...)
   └── points at one or more workspaces
@@ -24,22 +25,27 @@ Learning workspace  (<learner-chosen path>)
 ```
 
 Nothing else runs. There is no service, no database, no build step, no runtime dependency. The skills are Markdown
-plus two Node scripts used only by tests and CI.
+plus three Node scripts used only by tests and CI.
 
-## Why two skills
+## Why exactly three skills
 
-The two-command interface is a design constraint, not a simplification for its own sake. Every additional command
-is a decision the learner has to make, and every decision is a place where the apprenticeship stops feeling like
-returning to a mentor.
+The three-command interface is a design constraint, not a simplification for its own sake. Every additional
+command is a decision the learner has to make, and every decision is a place where the apprenticeship stops
+feeling like returning to a mentor.
 
 | Command | Responsibility |
 | :--- | :--- |
 | `/rust-learn-init` | Interview, probe, choose a workspace path, create initial state. Runs once. |
-| `/rust-learn-continue` | Discover the workspace, read current state, decide the next action, teach, record evidence. Runs forever. |
+| `/rust-learn-continue` | Discover the workspace, read current state, decide the next objective, teach, record evidence. Runs forever. |
+| `/rust-learn-status` | Report progress compactly from the learner model. Occasional. |
+
+There is deliberately no `/learn-networking`, `/learn-crypto`, `/learn-algorithms` or similar. The curriculum is
+large, and exposing it as modes would transfer the routing problem to the learner — which is precisely the
+cognitive overhead this project exists to remove. `/rust-learn-continue` chooses the domain.
 
 Everything that other systems would model as separate commands — review, projects, Git, quizzes, status, notes —
 is a *decision* made by `/rust-learn-continue`, not a command the learner types. See
-`skills/rust-learn-continue/references/session-flow.md`.
+`skills/rust-learn-continue/references/core/domain-selection.md`.
 
 Invocation control is handled in the `description` rather than with a frontmatter flag, for a measured reason.
 
@@ -70,47 +76,57 @@ Both properties are therefore enforced by checks that fail loudly if either drif
 - `tests/validate-skills.mjs` rejects any field outside the portable Agent Skills subset, so the previous
   portability problem cannot return.
 
-A useful side effect: with no Claude Code-only frontmatter, both `SKILL.md` files validate directly against the
-Agent Skills specification, and remain usable by any compatible client.
+A useful side effect: with no Claude Code-only frontmatter, all three `SKILL.md` files validate directly against
+the Agent Skills specification, and remain usable by any compatible client.
 
-## Progressive disclosure
+## Progressive disclosure and the context budget
 
-Each `SKILL.md` is a router: small, always-loaded when invoked, and pointing at reference files that load only when
-relevant. The split is deliberate:
+Each `SKILL.md` is a router: small, always-loaded when invoked, and pointing at reference files that load only
+when the current objective needs them. An invoked skill's instructions persist in context for the rest of the
+session, so every always-loaded line has a recurring cost.
 
-| Skill | `SKILL.md` role | References |
+Levels, descended one at a time and never skipped:
+
+| Level | What | When |
 | :--- | :--- | :--- |
-| `rust-learn-init` | The onboarding script | workspace bootstrap, initial assessment, curriculum map |
-| `rust-learn-continue` | The session loop | teaching, assessment, review, projects, TDD, Git/GitHub, English, notes, workspace, state format |
+| 0 | `SKILL.md` entrypoint (~100–180 lines) | On invocation |
+| 1 | Hot state: learner model, progress, review queue, log tail (~200–400 lines) | Every session |
+| 2 | One domain reference (~120–180 lines) | When the objective needs it |
+| 3 | One topic reference or note (~100 lines) | When the objective needs it |
+| 4 | Evidence, archive, deep reference | Rarely, on explicit need |
 
-Two deliberate choices:
+Three deliberate choices:
 
-- **Shared policy lives in `rust-learn-continue`.** `rust-learn-init` links across to
-  `../rust-learn-continue/references/state-format.md` and `.../english.md` rather than duplicating them. Both skills
-  are installed together, so the relative path always resolves. Duplication here would mean two copies of the state
-  schema drifting apart.
-- **References are coherent documents, not fragments.** Roughly nine files, each 100–250 lines, each covering one
-  domain end to end. Fragmenting further would multiply the paths a session has to consider without reducing the
-  tokens it actually reads.
+- **Shared policy lives in `rust-learn-continue`.** `rust-learn-init` and `rust-learn-status` link across to
+  `../rust-learn-continue/references/core/...` rather than duplicating. All three are installed together, so the
+  relative path always resolves. Duplication would mean two copies of the state schema drifting apart.
+- **References are coherent domain documents, not fragments.** One file per domain, 110–180 lines, each covering
+  what to teach, in what order, the mistakes learners make, and what counts as mastery. Fragmenting further would
+  multiply the paths a session must consider without reducing what it reads.
+- **The curriculum index is separate from the curriculum.** `curriculum/index.md` is a routing table — domains,
+  what each covers, and the prerequisite graph. It is small enough to read when choosing an objective, and it
+  means the mentor never has to load a domain reference simply to find out whether it is relevant.
 
-Context budget for a normal `/rust-learn-continue` session: one `SKILL.md` (~180 lines) plus two or three
-reference files loaded on demand, plus a few hundred lines of workspace state. It does not grow with the age of
-the apprenticeship, which is the point.
+`references/core/context-budget.md` states the loading discipline, including the single test applied before
+reading anything: *will this materially change the learner's next action?*
 
 ## State architecture
 
-The state is split by read frequency, which is what keeps a ten-year-old workspace as cheap to start as a new one.
+The state is split by read frequency — hot, warm and cold — which is what keeps a ten-year-old workspace as cheap
+to start as a new one.
 
-| Layer | Files | Read | Growth |
+| Tier | Files | Read | Growth |
 | :--- | :--- | :--- | :--- |
-| Identity | `rust-apprentice.yaml` | every session | fixed |
-| Current | `state/progress.md`, `state/review-queue.md` | every session | bounded by design |
-| Recent | `state/log.md`, `state/sessions/*` | tail only | trimmed and rolled up |
-| Profile | `learner/profile.md` | every session | near-fixed |
-| Evidence | `learner/evidence/*.md` | on demand | append-only |
-| Plan | `plans/*.md` | monthly | slow |
-| Knowledge | `notes/*.md` | on demand | grows |
-| History | `archive/*` | rarely | grows |
+| Hot | `rust-apprentice.yaml`, `state/learner-model.md`, `state/progress.md`, `state/review-queue.md`, `state/log.md` tail | every session | bounded by design |
+| Warm | `learner/profile.md`, `learner/goals.md`, `learner/evidence/*.md`, `state/sessions/*`, `plans/*`, `notes/*` | on demand | grows |
+| Cold | `archive/*` | rarely | grows |
+
+The critical file is `state/learner-model.md`: a compact index of nineteen domains with a mastery state, plus the
+current stage, active weaknesses and the current objective. It is what allows `/rust-learn-continue` to choose an
+objective and `/rust-learn-status` to report progress **without reading any evidence at all**.
+
+`notes/` is the learner's durable knowledge base and is never loaded automatically. Reading a note is a decision,
+not a default.
 
 Full schemas are in [`state-schema.md`](state-schema.md).
 
@@ -142,14 +158,23 @@ Recorded so future changes can be judged against them:
 `tests/repo-checks.mjs` enforces the structural invariants that matter, including the ones that are easy to break
 by accident:
 
-- exactly two skills, with the exact expected names;
-- valid, spec-conformant frontmatter, with `disable-model-invocation: true`;
+- exactly three skills, with the exact expected names;
+- valid frontmatter, and never `disable-model-invocation`;
+- every description scoping its own invocation;
 - every relative link inside the skills resolving;
-- no Chinese in code, scripts, workflows, or skill prose;
-- no hardcoded workspace path;
-- the two expected commands, and no others, mentioned across the skills and docs.
+- no Chinese in code, scripts, workflows or skill prose;
+- no hardcoded workspace path outside the files that legitimately show illustrative ones;
+- entrypoints under a line budget, and no inlined curriculum;
+- an eval case for every required learner situation and scenario;
+- `curriculum/index.md` pointing only at files that exist.
 
-`tests/assert-discovery.mjs` runs the real Skills CLI against the repository and asserts it finds exactly the two
-skills, which catches layout changes that would break `npx skills add <owner>/rust-apprentice`.
+`tests/validate-skills.mjs` runs `skills-ref validate` against each skill and rejects any field outside the
+portable Agent Skills subset.
+
+`tests/assert-discovery.mjs` runs the real Skills CLI against the repository and asserts it finds exactly the
+three skills, which catches layout changes that would break `npx skills add <owner>/rust-apprentice`.
+
+`tests/fix-links.mjs` is a maintenance aid, not a check: it repairs relative links after a file is moved, when the
+target's new location is unambiguous.
 
 Behavioural evaluation lives in `evals/` and runs with `claude plugin eval`.

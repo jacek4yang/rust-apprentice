@@ -1,9 +1,14 @@
 # State schema
 
 The complete on-disk state, in one page. The operational versions live in
-[`workspace.md`](../skills/rust-learn-continue/references/workspace.md) and
-[`state-format.md`](../skills/rust-learn-continue/references/state-format.md); this file is the summary you read
-when changing the format.
+[`core/workspace.md`](../skills/rust-learn-continue/references/core/workspace.md),
+[`core/state-format.md`](../skills/rust-learn-continue/references/core/state-format.md) and
+[`core/learner-model.md`](../skills/rust-learn-continue/references/core/learner-model.md); this file is the summary
+you read when changing the format.
+
+State is tiered by read frequency: **hot** (every session, bounded forever), **warm** (on demand), **cold**
+(rarely). The tiering is the mechanism that keeps a years-old workspace cheap to start; see
+[`core/context-budget.md`](../skills/rust-learn-continue/references/core/context-budget.md).
 
 ## Files
 
@@ -32,23 +37,25 @@ name: "<workspace label>"
 created: 2026-09-16
 learner: learner/profile.md
 state: state/progress.md
+learner_model: state/learner-model.md
 review_queue: state/review-queue.md
 ```
 
-`learner`, `state`, and `review_queue` are workspace-relative. The marker is the discovery contract: it must stay
+`learner`, `state`, `learner_model` and `review_queue` are workspace-relative. The marker is the discovery contract: it must stay
 at the workspace root with these field names.
 
 ### Current state
 
 | File | Required keys |
 | :--- | :--- |
-| `state/progress.md` | `updated`, `stage`, `phase`, `topic`, `task`, `status`, `Next action`, `Mastery` table, `Active weaknesses`, `Blockers` |
+| `state/learner-model.md` | `schema`, `updated`, `stage`, `independence`, `english_stage`, `git_level`, `current`, `domains`, `weaknesses` (max 5), `blockers`, `goals` |
+| `state/progress.md` | `updated`, `phase`, `Objective`, `Next action`, `Blockers`, `Paused` |
 | `state/review-queue.md` | `updated`, `Due` table, `Scheduled` table, `Retired` list |
 | `state/log.md` | dated single lines |
 | `state/sessions/<YYYY-MM-DD>.md` | `focus`, `did`, `evidence`, `left`, `next` |
 
 `status` is one of `in-progress`, `blocked`, `awaiting-learner`, `done`.
-`stage` is one of `beginner`, `developing`, `intermediate`, `advanced`.
+`stage` is one of `A`..`G`, defined in [`core/mastery-model.md`](../skills/rust-learn-continue/references/core/mastery-model.md).
 
 ### Learner
 
@@ -71,8 +78,12 @@ The complete vocabulary. Nothing else is valid, and there are no numbers anywher
 `unseen` → `introduced` → `guided` → `practiced` → `mostly-independent` → `independently-demonstrated` →
 `transferable`, plus `review-needed` as a demotion.
 
+Domains use this vocabulary in `state/learner-model.md`. Concept-level evidence uses it in
+`learner/evidence/<topic>.md`.
+
 Definitions and the evidence required for each transition are in
-[`assessment.md`](../skills/rust-learn-continue/references/assessment.md).
+[`core/mastery-model.md`](../skills/rust-learn-continue/references/core/mastery-model.md) and
+[`core/assessment.md`](../skills/rust-learn-continue/references/core/assessment.md).
 
 ## Review intervals
 
@@ -89,20 +100,22 @@ Definitions and the evidence required for each transition are in
 `A` Chinese conversation with English code → `B` Chinese with English artefacts → `C` mixed → `D` mostly English →
 `E` English. Advancement requires consistent evidence across at least three sessions and is recorded in
 `learner/profile.md` with the date. See
-[`english.md`](../skills/rust-learn-continue/references/english.md).
+[`curriculum/engineering-english.md`](../skills/rust-learn-continue/references/curriculum/engineering-english.md).
 
 ## Invariants
 
 These are what the checks in `tests/repo-checks.mjs` and the model's instructions both protect:
 
 1. Every file the mentor writes to disk is English, in every workspace, in every session.
-2. `state/` stays small enough to read in one pass, forever. Anything that would grow without bound goes to
+2. The hot tier stays small enough to read in one pass, forever. Anything that would grow without bound goes to
    `learner/evidence/` or `archive/`.
 3. No percentage, score, grade, or decimal point is ever recorded about the learner.
 4. Claims and observations are never merged in `learner/profile.md`.
 5. The registry is advisory; the marker file in the workspace is authoritative. A workspace with a valid marker is
    usable even if the registry is missing or corrupt.
 6. No file in the workspace is required for the workspace to be *found* except `rust-apprentice.yaml`.
+7. `notes/` is never loaded automatically. It is the learner's knowledge base, read only on a specific need.
+8. Domains are reported, not concepts. Nineteen lines at most, in any summary.
 
 ## Migration
 
@@ -112,3 +125,6 @@ The `schema:` field is `rust-apprentice/1`. If the format ever changes incompati
 - `/rust-learn-continue` reads the version from the marker and migrates forward in place, telling the learner what
   changed.
 - Never rewrite a workspace without saying so, and never migrate by discarding evidence.
+
+The full procedure, including recovering a half-damaged workspace, is in
+[`core/state-migration.md`](../skills/rust-learn-continue/references/core/state-migration.md).

@@ -25,7 +25,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$Skills = @("rust-learn-init", "rust-learn-continue")
+$Skills = @("rust-learn-init", "rust-learn-continue", "rust-learn-status")
 $RepoDir = Split-Path -Parent $PSScriptRoot
 
 if ($Uninstall) {
