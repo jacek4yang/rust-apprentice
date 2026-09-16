@@ -142,12 +142,25 @@ for (const name of skillNames) {
     return null;
   });
 
-  check(`${name}: is user-invocable only`, () => {
-    // Accept any YAML boolean spelling that YAML 1.1/1.2 and Claude Code both read as true.
+  check(`${name}: never opts out of skill registration`, () => {
+    // Measured on Claude Code: a personal skill with disable-model-invocation: true is not registered at all.
+    // The /name command does not resolve and the skill is absent from the model's listing, so it is effectively
+    // uninstalled. The user-invoked-only requirement is met by the description instead, asserted separately.
     const value = String(fm["disable-model-invocation"] ?? "").toLowerCase();
     return ["true", "yes", "on", "1"].includes(value)
-      ? null
-      : "must set disable-model-invocation: true so Claude cannot start a session unprompted";
+      ? "disable-model-invocation: true stops Claude Code registering the skill at all; scope invocation in the description instead"
+      : null;
+  });
+
+  check(`${name}: description scopes its own invocation`, () => {
+    const description = String(fm.description ?? "");
+    if (!/Invoke this only when the user explicitly/i.test(description)) {
+      return "must state that it is invoked only when the user explicitly asks";
+    }
+    if (!/Do not invoke it because Rust is mentioned in passing/i.test(description)) {
+      return "must state that a passing mention of Rust is not a trigger";
+    }
+    return null;
   });
 
   check(`${name}: declares an allowed-tools list`, () => {
@@ -294,6 +307,15 @@ check("workspace.md documents every discovery mechanism", () => {
   const required = ["rust-apprentice.yaml", "workspaces.yaml", "APPDATA", "Library/Application Support", "XDG_STATE_HOME"];
   const missing = required.filter((token) => !text.includes(token));
   return missing.length ? `not documented: ${missing.join(", ")}` : null;
+});
+
+check("no skill opts out of registration", () => {
+  const problems = [];
+  for (const name of skillNames) {
+    const text = readFileSync(join(skillsDir, name, "SKILL.md"), "utf8");
+    if (/^disable-model-invocation:\s*(true|yes|on|1)\s*$/im.test(text)) problems.push(name);
+  }
+  return problems.length ? `${problems.join(", ")} would not be registered by Claude Code` : null;
 });
 
 check("SKILL.md files never instruct Claude to create a default workspace", () => {

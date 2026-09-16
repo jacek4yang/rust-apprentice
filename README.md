@@ -195,7 +195,7 @@ skills/rust-learn-continue/references/   # teaching, assessment, review, project
 .claude-plugin/plugin.json               # plugin manifest, so the repo also works as a Claude Code plugin
 evals/                                   # behavioural evaluation suites
 docs/                                    # architecture and state schema
-scripts/                                 # validator + optional install helpers
+scripts/                                 # optional install helpers
 tests/                                   # static repository checks (run in CI)
 ```
 
@@ -209,11 +209,10 @@ ownership, learners returning after a week, learners who ask Claude to write eve
 strong Git users, Chinese comments in code, and learners progressing into HTTP and async Rust.
 
 ```bash
-node scripts/run-evals.mjs --case total-beginner --runs 3 --ablation none --allow-tools Skill
+claude plugin eval . --case total-beginner --runs 3 --ablation none --trust-plugin
 ```
 
-Run them through `scripts/run-evals.mjs` rather than `claude plugin eval` directly, and see
-[`evals/README.md`](evals/README.md) for why.
+See [`evals/README.md`](evals/README.md) for the cases and how to read the results.
 
 Static repository checks — exactly two skills, valid frontmatter, working relative links, no Chinese in code, no
 hardcoded workspace path — run in CI and locally:
@@ -225,11 +224,11 @@ node tests/assert-discovery.mjs # the Skills CLI finds exactly two skills
 
 ## Status and limitations
 
-- Written and tested primarily against Claude Code. The skills use `disable-model-invocation: true` and
-  `user-invocable: true` to guarantee that a learning session only starts when you ask for one. Those are Claude
-  Code fields, not part of the portable Agent Skills subset, so other clients may accept the skills without
-  honouring that restriction. See [`docs/architecture.md`](docs/architecture.md) for the measurement behind this
-  and the alternative that was rejected.
+- Written and tested primarily against Claude Code. A learning session only starts when you ask for one: the
+  skills carry no automatic-invocation frontmatter, and their descriptions state that a passing mention of Rust is
+  not a trigger. This was verified in a real session. See [`docs/architecture.md`](docs/architecture.md) for why
+  the `disable-model-invocation` flag is deliberately **not** used — on Claude Code it prevents the skill from
+  being registered at all.
 - The workspace may be moved between machines by copying the directory. After a move, tell the mentor the new
   path once; it will update its registry.
 - The mentor cannot verify anything you do outside the session. Evidence is whatever you show it.
