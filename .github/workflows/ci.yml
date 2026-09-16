@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate skills and repository
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Windows and Linux only: macOS shares the POSIX paths exercised on Linux, and
+        # runner minutes are better spent elsewhere.
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Repository checks
+        run: node tests/repo-checks.mjs
+
+      - name: Validate SKILL.md frontmatter against the Agent Skills spec
+        run: |
+          npx --yes skills-ref@0.1.5 validate skills/rust-learn-init
+          npx --yes skills-ref@0.1.5 validate skills/rust-learn-continue
+        shell: bash
+
+      - name: Skills CLI discovery check
+        run: |
+          npx --yes skills@latest add . --list
+          npx --yes skills@latest add . --list --json
+        shell: bash
+
+      - name: Assert exactly two skills are discoverable
+        run: node tests/assert-discovery.mjs
+        shell: bash

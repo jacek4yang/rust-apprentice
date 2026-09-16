@@ -1,0 +1,13 @@
+{
+  "name": "rust-apprentice",
+  "version": "1.0.0",
+  "description": "A long-term Rust apprenticeship mentor: one command to initialize, one to continue, teaching instead of coding for the learner.",
+  "author": {
+    "name": "jacek4yang",
+    "url": "https://github.com/jacek4yang"
+  },
+  "homepage": "https://github.com/jacek4yang/rust-apprentice",
+  "repository": "https://github.com/jacek4yang/rust-apprentice",
+  "license": "MIT",
+  "keywords": ["rust", "learning", "mentor", "apprenticeship", "teaching", "curriculum"]
+}

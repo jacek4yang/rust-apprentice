@@ -1,0 +1,19 @@
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Node (installer tooling only — the skills themselves need no runtime)
+node_modules/
+npm-debug.log*
+
+# Rust build output, in case a project is ever scaffolded inside this repository
+target/
+
+# Eval runs write reports and transcripts here
+evals/results/
