@@ -18,6 +18,10 @@ hour of questions.
 ## Rules
 
 - **Two to four probes total.** Not more. Initialization should take minutes.
+- **One probe at a time, and never bundled with interview questions.** A probe followed by a list of other
+  questions is not a probe, it is a form with a riddle attached.
+- **If the learner asks you to hurry up, stop probing and proceed.** The remaining areas can be inferred, asked
+  later in a real session, or left genuinely unknown. An accurate first session is not worth an unpleasant one.
 - **One probe per message.** Ask, wait, respond, then the next.
 - **Never announce a test.** Frame each probe as curiosity about how they think: "I want to see how you approach
   this" is fine; "let me assess you" is not.

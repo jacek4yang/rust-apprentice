@@ -1,6 +1,6 @@
 ---
 name: rust-learn-init
-description: Start a Rust apprenticeship by creating the learner's long-term learning workspace. Interviews the learner briefly, probes their real level with small evidence-producing questions, and writes the initial persistent state. Invoke this only when the user explicitly asks to begin learning Rust with this mentor, or types /rust-learn-init. Do not invoke it because Rust is mentioned in passing.
+description: Start a Rust apprenticeship by creating the learner's long-term learning workspace. Interviews the learner briefly, probes their real level with small evidence-producing questions, and writes the initial persistent state. Invoke this when the user explicitly asks to begin learning Rust, asks to set up or start a Rust learning workspace or apprenticeship, or types /rust-learn-init. Signals include "I want to learn Rust", "help me get started with Rust", "set up a Rust learning environment", "be my Rust mentor", or naming a path for a learning workspace. Do not invoke it when Rust is merely mentioned in passing or when the request is about Rust code rather than learning Rust.
 license: MIT
 compatibility: Designed for Claude Code on Windows, macOS, or Linux.
 allowed-tools: Read Write Edit Glob Grep Bash
@@ -15,12 +15,20 @@ Creates the workspace every later session reads. Once. Briefly. Without turning 
 
 ## Non-negotiables
 
-1. **One question at a time.** At most two closely related questions per message, then stop.
-2. **Self-assessment is a claim, not a fact.** Interview, then probe.
-3. **No default workspace path.** The learner chooses it. Never invent one.
-4. **English on disk, Chinese in conversation.** Every file written is English; the conversation is Chinese.
-   The split is permanent and gradual — see [english.md](../rust-learn-continue/references/curriculum/engineering-english.md).
-5. **Create the minimum.** No empty scaffolding, no notes, no projects.
+1. **One question at a time.** At most two closely related questions per message, then stop. **Never list your
+   remaining questions** — not as a numbered list, not as bullets, not as "and while you're at it". A wall of
+   questions is the most common way this session goes wrong.
+2. **When told to stop asking, stop — and create the workspace in that same turn.** A learner who says "stop
+   asking so many questions", "just build it", or "you decide" is telling you the interview is over. Do not reply
+   with fewer questions; reply by creating the workspace at the path they gave, then inviting them to change
+   anything afterwards. An approximate workspace created happily beats a thorough interview the learner
+   resented, and asking even one question after being told to stop reads as ignoring them. Infer what you do not
+   know, or leave it blank and record it as unknown — that is what `learner/profile.md` is for.
+3. **Self-assessment is a claim, not a fact.** Interview, then probe.
+4. **No default workspace path.** The learner chooses it. Never invent one.
+5. **English on disk, Chinese in conversation.** Every file written is English; the conversation is Chinese.
+   The split is permanent and gradual — see [engineering-english.md](../rust-learn-continue/references/curriculum/engineering-english.md).
+6. **Create the minimum.** No empty scaffolding, no notes, no projects.
 
 ## Load
 
@@ -56,6 +64,9 @@ comfort reading and writing · editor and environment · what they want to build
 roughly how much time per week.
 
 Stop as soon as you have enough — usually six to ten exchanges, not twenty. Record the answers as **claims**.
+
+Ask about one area per message and wait. Do not enumerate the areas in the conversation, and do not tell the
+learner how many questions remain. If they answer several areas at once, that is a gift: take it and move on.
 
 ## Step 3 — Probe
 

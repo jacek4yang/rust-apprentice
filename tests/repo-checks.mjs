@@ -154,10 +154,12 @@ for (const name of skillNames) {
 
   check(`${name}: description scopes its own invocation`, () => {
     const description = String(fm.description ?? "");
-    if (!/Invoke this only when the user explicitly/i.test(description)) {
-      return "must state that it is invoked only when the user explicitly asks";
+    // The description is the only thing standing between a genuine request and an unwanted invocation, so it
+    // must both invite an explicit ask and refuse a passing mention.
+    if (!/Invoke this when the user explicitly/i.test(description)) {
+      return "must state that it is invoked when the user explicitly asks";
     }
-    if (!/Do not invoke it because Rust is mentioned in passing/i.test(description)) {
+    if (!/Do not invoke it when Rust is (?:merely )?mentioned in passing/i.test(description)) {
       return "must state that a passing mention of Rust is not a trigger";
     }
     return null;
@@ -401,6 +403,7 @@ check("eval suite covers the required learner situations", () => {
     "status-detail-on-request",
     "codebase-reading-unfamiliar",
     "crypto-api-misuse",
+    "init-impatient-learner",
   ];
   const missing = required.filter((r) => !cases.includes(r));
   return missing.length ? `missing eval cases: ${missing.join(", ")}` : null;
