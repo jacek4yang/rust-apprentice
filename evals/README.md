@@ -81,6 +81,7 @@ Reports are written to `evals/results/<timestamp>/` and are gitignored.
 | `status-detail-on-request` | Asks for networking detail | Detail for that area only, from that area's evidence |
 | `codebase-reading-unfamiliar` | Wants an unfamiliar repo explained | Reading method instead of a summary; the learner reads the code |
 | `crypto-api-misuse` | AEAD with a fixed nonce | Nonce reuse identified as the serious flaw; learner fixes it; no invented crypto |
+| `init-impatient-learner` | "Stop asking questions, just set it up" | Interview ends immediately; no wall of questions in response |
 
 ## A limitation you should know about
 
