@@ -28,19 +28,12 @@ jobs:
 
       - name: Repository checks
         run: node tests/repo-checks.mjs
-
-      - name: Validate SKILL.md frontmatter against the Agent Skills spec
-        run: |
-          npx --yes skills-ref@0.1.5 validate skills/rust-learn-init
-          npx --yes skills-ref@0.1.5 validate skills/rust-learn-continue
         shell: bash
 
-      - name: Skills CLI discovery check
-        run: |
-          npx --yes skills@latest add . --list
-          npx --yes skills@latest add . --list --json
+      - name: Validate SKILL.md against the Agent Skills specification
+        run: node tests/validate-skills.mjs
         shell: bash
 
-      - name: Assert exactly two skills are discoverable
+      - name: Assert the Skills CLI discovers exactly two skills
         run: node tests/assert-discovery.mjs
         shell: bash

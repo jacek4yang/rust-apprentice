@@ -44,6 +44,26 @@ is a *decision* made by `/rust-learn-continue`, not a command the learner types.
 Both set `disable-model-invocation: true`, so Claude never starts a learning session because Rust happened to come
 up in conversation. Both set `user-invocable: true` explicitly.
 
+### A deliberate, measured portability trade-off
+
+`disable-model-invocation` and `user-invocable` are Claude Code frontmatter fields. They are not part of the
+portable Agent Skills subset, so the official reference validator (`skills-ref validate`), claude.ai uploads, and
+`package_skill.py` all reject them — the last two hard-error on any field outside `name`, `description`, `license`,
+`compatibility`, `metadata`, `allowed-tools`.
+
+Those fields were kept anyway, because the requirement they satisfy is not optional: *do not let Claude
+automatically start a learning session merely because Rust is mentioned*. The alternative — encoding the intent in
+the `metadata` map, which the spec permits — was tested rather than assumed. With the flags in `metadata`, Claude
+Code exposes the skill to the model again and the restriction is silently lost: verified by installing both
+variants and observing whether the skill appeared in the model's skill listing. Only the direct field works.
+
+The resolution is in `tests/validate-skills.mjs`: the portable specification is validated against a copy of each
+`SKILL.md` with those two fields removed, and the presence of the fields in the real files is asserted separately.
+The portable subset stays spec-clean; the Claude Code behaviour stays present and deliberate.
+
+The practical consequence, stated plainly: these skills are **Claude Code first**. A client that implements only
+the portable subset will accept them, but will not honour the user-invoked-only restriction.
+
 ## Progressive disclosure
 
 Each `SKILL.md` is a router: small, always-loaded when invoked, and pointing at reference files that load only when
