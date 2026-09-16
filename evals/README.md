@@ -11,28 +11,15 @@ writes the learner's code, that trusts a self-assessment, that forgets what happ
 show up in a linter, so they are tested here.
 
 
-## A constraint you need to know about
+## Note on the harness
 
-`claude plugin eval` loads the plugin's skills as a **model-invoked** capability. These skills set
-`disable-model-invocation: true` so that Claude never starts a learning session just because the user mentioned
-Rust, which means the harness cannot see them: every case runs against bare Claude Code and scores accordingly.
+`claude plugin eval` loads a plugin's skills as a model-invoked capability. These skills are also user-invoked
+commands with no `disable-model-invocation` flag (see [`docs/architecture.md`](../docs/architecture.md) for why
+that flag is not used), so the harness sees them and the cases run against the real skills.
 
-`scripts/run-evals.mjs` handles this. It flips that one flag for the duration of a run, restores both files
-afterwards, and refuses to start if a file is not in the expected state:
-
-```bash
-node scripts/run-evals.mjs --case total-beginner --runs 3 --ablation none --allow-tools Skill
-node scripts/run-evals.mjs --threshold 0.8
-```
-
-The `Skill` grant matters: without `--allow-tools Skill` the agent is told the skill exists, tries to invoke it,
-is denied, and the run measures nothing. This is also why a run whose case declares `allowed_tools` still needs
-the flag on the command line — it is an operator grant, not a case-level one.
-
-Note that the temporary flip is itself a kind of check. In production the learner types the command, so the skill
-is loaded deliberately; model-invoked, the agent chooses it and tends to over-explain. Cases asserting that the
-mentor keeps the learner active are therefore measuring the skill's constraints under slightly harder conditions
-than production.
+That has one consequence worth knowing when reading results: in production the learner types the command, so the
+skill is loaded deliberately; under the harness the agent chooses it. Cases that assert the mentor keeps the
+learner active are therefore measuring the skill's constraints under slightly harder conditions than production.
 
 ## Running on Windows
 
@@ -46,17 +33,14 @@ From the repository root:
 
 ```bash
 # one case, one run, no baseline arm (cheapest, for iterating)
-claude plugin eval . --case total-beginner --runs 1 --ablation none
+claude plugin eval . --case total-beginner --runs 1 --ablation none --trust-plugin
 
 # one case with the no-plugin baseline, to see what the skills actually contribute
-claude plugin eval . --case ownership-struggle --runs 3
+claude plugin eval . --case ownership-struggle --runs 3 --trust-plugin
 
 # the whole suite, failing the build below 0.8
-claude plugin eval . --threshold 0.8
+claude plugin eval . --threshold 0.8 --trust-plugin
 ```
-
-The plain `claude plugin eval .` form works too, but only after you have made the skills visible to the harness
-yourself — see the constraint above.
 
 Useful options: `--case <glob>`, `--tag`, `--model`, `--runs`, `--judge-model`, `--json <path>`, `--keep-temp` to
 preserve a run's sandbox and transcript for debugging.

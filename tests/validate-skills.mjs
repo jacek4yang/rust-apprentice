@@ -3,47 +3,28 @@
  * Validates both SKILL.md files against the Agent Skills specification using the official reference
  * implementation (`skills-ref validate`).
  *
- * Why this is not just `npx skills-ref validate skills/*` in the workflow:
+ * The skills deliberately carry no Claude Code-only frontmatter. `disable-model-invocation: true` was tried and
+ * removed: measured on Claude Code, a personal skill with that flag set is not registered at all — the /name
+ * command does not resolve and the skill is absent from the model's listing, so the flag produced an uninstalled
+ * skill rather than a user-invoked one. Setting it to false registers the skill normally, and a description that
+ * scopes itself to explicit requests was verified not to start a session on a passing mention of Rust.
  *
- * These skills set `disable-model-invocation: true` and `user-invocable: true`. Those are Claude Code
- * frontmatter fields, documented for exactly this purpose, and they are what stops Claude opening a learning
- * session just because the user mentioned Rust. They are not part of the portable Agent Skills subset, so the
- * reference validator rejects them — as do claude.ai uploads and `package_skill.py`, which hard-error on any
- * field outside `name`, `description`, `license`, `compatibility`, `metadata`, `allowed-tools`.
- *
- * Encoding the intent in `metadata` instead was measured, not assumed: with the flags in `metadata`, Claude Code
- * exposes the skill to the model again and the restriction is silently lost. Verified by installing both
- * variants and observing whether the skill appeared in the model's skill listing.
- *
- * So the portable spec is validated against a copy of each SKILL.md with the two Claude Code fields removed,
- * and the presence of those fields in the real files is asserted separately. That keeps both properties honest:
- * the portable subset is spec-clean, and the Claude Code behaviour is present and deliberate.
+ * The consequence is that these files sit entirely inside the portable Agent Skills subset, so they validate
+ * directly, need no field stripping, and remain usable by any Agent Skills-compatible client.
  *
  * Usage: node tests/validate-skills.mjs
  */
 
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SKILLS_DIR = join(ROOT, "skills");
 
-// Claude Code extensions used by this repository, and the behaviour each one buys.
-const CLAUDE_CODE_FIELDS = [
-  {
-    key: "disable-model-invocation",
-    required: "true",
-    why: "Stops Claude starting a learning session unprompted.",
-  },
-  {
-    key: "user-invocable",
-    required: "true",
-    why: "Keeps both skills visible in the / menu.",
-  },
-];
+// Fields outside the portable spec. Present only to produce a clear message if one is reintroduced.
+const NON_PORTABLE_FIELDS = ["disable-model-invocation", "user-invocable", "allowed-tools".replace("allowed-tools", "argument-hint")];
 
 const failures = [];
 const notes = [];
@@ -58,47 +39,38 @@ if (skills.length === 0) {
   process.exit(1);
 }
 
-const scratch = mkdtempSync(join(tmpdir(), "rust-apprentice-validate-"));
-
 try {
   for (const skill of skills) {
-    const source = join(SKILLS_DIR, skill, "SKILL.md");
-    const text = readFileSync(source, "utf8");
+    const skillDir = join(SKILLS_DIR, skill);
+    const text = readFileSync(join(skillDir, "SKILL.md"), "utf8");
 
-    // Assert the Claude Code behaviour is present in the real file.
-    for (const field of CLAUDE_CODE_FIELDS) {
-      const pattern = new RegExp(`^${field.key}:\\s*${field.required}\\s*$`, "m");
-      if (!pattern.test(text)) {
+    // Guard: no Claude Code-only field may reappear, since it would either break portable validation or, in the
+    // case of disable-model-invocation, silently unregister the skill.
+    for (const field of NON_PORTABLE_FIELDS) {
+      if (new RegExp(`^${field}:`, "m").test(text)) {
         failures.push(
-          `${skill}/SKILL.md must set \`${field.key}: ${field.required}\`. ${field.why}`
+          `${skill}/SKILL.md uses \`${field}\`, which is outside the portable Agent Skills subset. ` +
+            (field === "disable-model-invocation"
+              ? "This flag also stops Claude Code registering the skill. Scope invocation in the description instead."
+              : "Move it into `metadata`, or remove it.")
         );
       }
     }
 
-    // Build the spec-portable copy: same content, Claude Code fields removed.
-    let portable = text;
-    for (const field of CLAUDE_CODE_FIELDS) {
-      portable = portable.replace(new RegExp(`^${field.key}:.*\\r?\\n`, "m"), "");
-    }
-
-    const staged = join(scratch, skill);
-    mkdirSync(staged, { recursive: true });
-    writeFileSync(join(staged, "SKILL.md"), portable, "utf8");
-
     try {
-      const output = execFileSync("npx", ["--yes", "skills-ref@0.1.5", "validate", staged], {
+      const output = execFileSync("npx", ["--yes", "skills-ref@0.1.5", "validate", skillDir], {
         encoding: "utf8",
         shell: process.platform === "win32",
         stdio: ["ignore", "pipe", "pipe"],
       });
-      notes.push(output.trim().replace(staged, `skills/${skill}`));
+      notes.push(output.trim());
     } catch (error) {
       const detail = `${error.stdout ?? ""}${error.stderr ?? ""}`.trim();
       failures.push(`${skill}: Agent Skills specification validation failed\n${detail}`);
     }
   }
-} finally {
-  rmSync(scratch, { recursive: true, force: true });
+} catch (unexpected) {
+  failures.push(String(unexpected && unexpected.message ? unexpected.message : unexpected));
 }
 
 for (const note of notes) console.log(`  ok  ${note}`);
@@ -111,6 +83,5 @@ if (failures.length) {
 }
 
 console.log(
-  `\nAgent Skills validation passed for ${skills.length} skills, ` +
-    `with ${CLAUDE_CODE_FIELDS.length} Claude Code fields asserted separately.`
+  `\nAgent Skills validation passed for ${skills.length} skills, all within the portable subset.`
 );
