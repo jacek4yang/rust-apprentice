@@ -2,7 +2,7 @@
 name: rust-learn-status
 description: 'Show a compact summary of Rust apprenticeship progress — current stage, domain mastery, active weaknesses, the current project, recent evidence, and an approximate trajectory. Invoke this when the user explicitly asks to see their Rust progress, asks where they are in their Rust learning, asks how far along they are, or types /rust-learn-status. Do not invoke it when Rust is merely mentioned in passing.'
 license: MIT
-compatibility: Designed for Claude Code on Windows, macOS, or Linux.
+compatibility: Requires filesystem read access. For Claude Code and Pi.
 allowed-tools: Read Glob Grep
 metadata:
   version: "1.0"

@@ -1,6 +1,6 @@
 # Verification status
 
-Baseline: e229888. Implementation under review: uncommitted working tree, 2026-09-22.
+Baseline: e229888. Implementation under review: uncommitted working tree (state contract, eval harness and Pi adapter), 2026-09-22.
 These observations describe this environment, not a promise of learning outcomes.
 
 ## Verified
@@ -22,6 +22,14 @@ These observations describe this environment, not a promise of learning outcomes
   Natural-language smoke runs: total-beginner 1.00 (8/8 graders), async-rust 1.00 (8/8),
   init-impatient-learner 1.00 (4/4, workspace actually written), status-compact-summary 0.88 — a genuine
   product failure: the mentor listed only the domains it judged relevant instead of one line per domain.
+- Pi adapter, Pi 0.87.0 on Windows with Node 26.1.0, isolated `PI_CODING_AGENT_DIR`: `pi install <repo path>`
+  added the repository as a local package, and Pi's own resource loader discovered exactly the three skills
+  (`rust-learn-init`, `rust-learn-continue`, `rust-learn-status`) and exactly the three same-named prompt
+  templates in `prompts/`, with zero diagnostics. `/rust-learn-status review queue` expanded to the alias body
+  with the argument appended. `npm run verify:pi` reproduces the discovery check against a real Pi install and
+  SKIPs when Pi is absent. This is discovery and expansion only: the git-source install, the Claude Code
+  invocation matrix and any Pi model behaviour remain unexecuted, so the `compatibility` frontmatter deliberately
+  states requirements instead of claiming platform testing.
 
 ## Infrastructure failure
 

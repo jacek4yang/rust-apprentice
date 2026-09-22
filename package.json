@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node tests/repo-checks.mjs && node tests/state-contracts.mjs && node tests/review-policy.mjs && node tests/eval-contracts.mjs && node tests/eval-audit.mjs && node tests/installers.mjs",
+    "verify:pi": "node scripts/verify-pi.mjs",
     "eval": "node scripts/run-evals.mjs"
   },
   "devDependencies": {

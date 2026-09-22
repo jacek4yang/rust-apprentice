@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 # Install all three skills as one recoverable transaction.
+# Claude Code manual installer. Pi uses its native package installation instead:
+# pi install git:github.com/jacek4yang/rust-apprentice
 # Usage: ./scripts/install.sh [--uninstall]; destination: CLAUDE_SKILLS_DIR.
 set -eu
 SKILLS="rust-learn-init rust-learn-continue rust-learn-status"

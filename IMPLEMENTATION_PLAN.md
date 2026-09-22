@@ -288,3 +288,14 @@
 - T2 勾选更新：运行入口/说明、隔离注册表、prompt 无斜杠约定已完成；只读/写入分组与 29×3 全量运行、多会话轨迹（T3）、调用矩阵（T5）仍未完成。
 - 全部离线检查通过：npm test 全绿（repo/state/review-policy/eval-contracts/eval-audit/installers）。
 - 下一步：修复 status 每域一行失败并跑剩余用例 smoke，再推进 29×3 与 T3/T5；然后整理提交。
+
+### 检查点 D / Pi 作为第一类 harness 的适配与真实包发现验证
+
+- 新增 `prompts/rust-learn-{init,continue,status}.md`：Pi 命令别名，薄包装（frontmatter 只有 `description` 与 `argument-hint`，正文只有"先加载对应 skill"一句加 `$ARGUMENTS`）。`tests/repo-checks.mjs` 新增四项检查：别名清单与文件名一致、别名足够薄、别名内不得出现教学/状态词汇、仓库内不得存在技能副本（`.pi/`、`.claude/skills`）。
+- README、`docs/architecture.md`、`docs/state-schema.md`、`workspace.md`、`scripts/install.sh` 注释同步为双 harness（Claude Code + Pi）：明确 `skills/` 是教学逻辑的唯一来源，`.claude-plugin/` 与 `prompts/` 只是各自 harness 的适配器，学习工作区与状态格式共用。
+- 真实客户端验证（Pi 0.87.0，Windows，Node 26.1.0）：用隔离的 `PI_CODING_AGENT_DIR` 执行 `pi install <repo>` 成功写入隔离 settings；再直接调用 Pi 自己的 `DefaultResourceLoader`（0.87.0），发现恰好 3 个 skill 与 3 个同名 prompt 模板，零 diagnostic；`expandPromptTemplate("/rust-learn-status review queue")` 正确展开并把参数附在正文后。命令名、`argument-hint` 与 `/skill:<name>` 原生命令均与官方文档一致。
+- 已把发现检查固化为开发期脚本 `scripts/verify-pi.mjs`（`npm run verify:pi`）：写入隔离 settings、调用 Pi 公开导出的 `DefaultResourceLoader` 断言 3 skill + 3 prompt + 零 diagnostic，缺 Pi 时 SKIP。它不进入 `npm test`（CI 无 Pi）；`pi install` 因 Windows 不能用无 shell 方式启动 `pi.cmd`，仍以手动命令记录在 `docs/validation-status.md`。
+- 修正（诚实性）：三个 `SKILL.md` 的 `compatibility` 曾被写成 "Tested with Claude Code and Pi on Windows, macOS, and Linux"，这是未验证的平台声明，违反计划约束 5；改为只陈述环境要求与支持的 harness。`docs/validation-status.md` 记录本轮证据与其边界。
+- 未执行、不得据本轮下结论：git 源安装（需远端仓库与网络）、Claude Code 侧调用矩阵、Pi 下的模型行为与行为评测。Pi 侧评测尚未构建。
+- 观察到、待实测的打包风险：仓库根 `package.json` 是开发期工具（devDependencies + `private`）。据 Pi 文档，从 git 安装且存在 `package.json` 时会执行 `npm install`，可能顺带安装开发依赖。本地路径安装已确认不受影响；未在 git 源实测，故只记录为待办。
+- 下一步不变，优先级最高：修复 status 每域一行失败；推进 T2 的 29×3、T3 多会话轨迹、T5 的 Claude Code 调用矩阵；最后走 T7 发布门槛。整理提交时把 Pi 适配作为一个独立可审查单元。

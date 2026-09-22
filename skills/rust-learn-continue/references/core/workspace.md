@@ -85,7 +85,8 @@ A YAML file listing every workspace this machine knows about.
 Location — first match wins:
 
 1. `$RUST_APPRENTICE_STATE_DIR` if set.
-2. `$CLAUDE_SKILLS_STATE_DIR` if set.
+2. `$CLAUDE_SKILLS_STATE_DIR` if set (legacy Claude Code compatibility fallback; workspaces from older
+   Claude-only installs may rely on it).
 3. Platform default:
 
 | Platform | Path |
@@ -161,7 +162,7 @@ recent entries, with the rest in the archive. Never delete evidence to meet a co
 
 ## Cross-platform rules
 
-- Claude Code may run shell commands through bash (Git Bash on Windows) or PowerShell. Do not assume either.
+- The agent may run shell commands through bash or PowerShell. Do not assume either.
 - Prefer tools that are the same everywhere: `Read`, `Write`, `Glob`, `Grep`, and `cargo` itself.
 - When you must run a process, use `cargo` rather than shell built-ins. If a shell command is unavoidable, check
   which shell you have before relying on syntax.

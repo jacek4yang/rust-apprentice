@@ -1,7 +1,13 @@
 # rust-apprentice
 
-A long-term engineering apprenticeship, centred on Rust, for [Claude Code](https://code.claude.com/docs/en/skills).
-Built as an [Agent Skill](https://agentskills.io/specification) repository.
+A long-term engineering apprenticeship, centred on Rust, built on the [Agent Skills](https://agentskills.io/specification) standard.
+
+Primary supported harnesses:
+
+- [Claude Code](https://code.claude.com/docs/en/skills)
+- [Pi](https://pi.build)
+
+Other Agent Skills-compatible clients may work, but are not first-class tested targets.
 
 It exists for one reason: to turn a motivated beginner into an independent engineer who is especially capable with
 Rust — without making them dependent on an AI.
@@ -47,17 +53,19 @@ syllabus. It is loaded one domain at a time, only when your current project need
 
 | Requirement | Notes |
 | :--- | :--- |
-| [Claude Code](https://code.claude.com/docs/en/skills) | The skills are written for Claude Code. |
-| Node.js 18+ | Only for the `npx skills` installer. Not needed for the manual install. |
+| [Claude Code](https://code.claude.com/docs/en/skills) or [Pi](https://pi.build) | The skills are written for both. |
+| Node.js 18+ | Only for the `npx skills` installer for Claude Code. Not needed for Pi or the manual install. |
 | Rust toolchain | Not needed to install. `/rust-learn-init` walks you through it if it is missing. |
 
-Windows, macOS and Linux are supported. Windows is treated as first class: PowerShell 5.1 and 7, `cmd`, Git Bash,
-legacy CP936/GBK consoles, and paths with Chinese characters or spaces all work, and the skills never change your
-system code page or locale to make that happen.
+Windows, macOS and Linux are supported. Linux is the primary development and testing environment. Windows is
+treated as first class: PowerShell 5.1 and 7, `cmd`, Git Bash, legacy CP936/GBK consoles, and paths with Chinese
+characters or spaces all work, and the skills never change your system code page or locale to make that happen.
 
 ## Installation
 
-### Recommended: the Skills CLI
+### Claude Code
+
+**Recommended: the Skills CLI**
 
 ```bash
 npx skills@latest add jacek4yang/rust-apprentice -g -a claude-code --copy
@@ -108,6 +116,32 @@ under `~/.claude/skills/`. Nothing else on your machine is touched.
 > The installer copies skill directories into `~/.claude/skills/`. The skills repository and your learning
 > workspace are separate things in different places; neither is inside the other.
 
+### Pi
+
+```bash
+pi install git:github.com/jacek4yang/rust-apprentice
+```
+
+Then, in Pi:
+
+```
+/rust-learn-init
+```
+
+Pi also exposes the skills natively as `/skill:rust-learn-init`, `/skill:rust-learn-continue` and
+`/skill:rust-learn-status`. They work as a fallback, but the plain commands above are the primary UX.
+
+### The same three commands, either harness
+
+```
+/rust-learn-init        # once
+/rust-learn-continue    # from then on, forever
+/rust-learn-status      # occasionally, to see where you are
+```
+
+A workspace initialized under Claude Code is used by Pi as-is, and the other way round: the state format,
+registry and discovery are shared.
+
 ## `/rust-learn-init` — run once
 
 A short conversation, not a form. It asks one or two questions at a time about your background, then does
@@ -154,7 +188,8 @@ All three skills find your workspace without being told, in this order:
 4. Several → the most recently active one, when that is unambiguous.
 5. **Ask** — only when genuinely ambiguous, or the workspace is missing or has moved.
 
-The registry lives at `$RUST_APPRENTICE_STATE_DIR` if set, else `$CLAUDE_SKILLS_STATE_DIR`, else:
+The registry lives at `$RUST_APPRENTICE_STATE_DIR` if set, else `$CLAUDE_SKILLS_STATE_DIR` (legacy Claude Code
+compatibility), else:
 
 | Platform | State directory |
 | :--- | :--- |
@@ -215,15 +250,17 @@ skills/rust-learn-continue/references/
 │                                        # Windows and encoding, status reporting, migration
 ├── curriculum/                          # index.md plus one file per domain
 └── rust/                                # ownership, traits, lifetimes, errors, async, concurrency
+prompts/rust-learn-{init,continue,status}.md  # thin Pi command aliases; they load the matching skill
 .claude-plugin/plugin.json               # plugin manifest, so the repo also works as a Claude Code plugin
 evals/                                   # behavioural evaluation suites
 docs/                                    # architecture and state schema
-scripts/                                 # optional install helpers
+scripts/                                 # optional install helpers (Claude Code manual install)
 tests/                                   # static repository checks (run in CI)
 ```
 
 Each `SKILL.md` is a router — purpose, invariants, workflow, and pointers. The teaching material lives in the
-references and is loaded only when the current objective needs it.
+references and is loaded only when the current objective needs it. The `prompts/` files are Pi command aliases:
+each is a three-line wrapper that tells the agent to load the matching skill, with no duplicated teaching logic.
 
 ## Evaluations
 
@@ -247,17 +284,18 @@ npm test                        # repository, state, eval fixture and installer 
 node tests/repo-checks.mjs       # structure, frontmatter, links, English-only, thin entrypoints
 node tests/validate-skills.mjs   # validates against the Agent Skills specification
 node tests/assert-discovery.mjs  # the Skills CLI finds exactly three skills
+npm run verify:pi               # optional: real Pi discovers 3 skills and 3 aliases (SKIP without Pi)
 ```
 
 ## Status and limitations
 
-- Written primarily for Claude Code. Descriptions limit teaching to explicit learning requests, including
+- Written for Claude Code and Pi. Descriptions limit teaching to explicit learning requests, including
   natural-language requests. This is model-directed behaviour, not a hard invocation guarantee. The manual-only
   flag is omitted to keep natural-language requests working; client compatibility needs versioned verification.
 - Structural and isolated installer checks pass locally; full behavioural and long-term learning outcomes
   remain unverified. See [verification status](docs/validation-status.md) and [eval instructions](evals/README.md).
-- Install all three sibling skills. Plugin installation uses namespaced commands such as
-  `/rust-apprentice:rust-learn-init`; personal/project Skill installs use `/rust-learn-init`.
+- Install all three sibling skills. Claude Code plugin installation uses namespaced commands such as
+  `/rust-apprentice:rust-learn-init`; personal/project Skill installs and Pi use `/rust-learn-init`.
 - The workspace may be moved between machines by copying the directory. After a move, tell the mentor the new
   path once.
 - The mentor cannot verify anything you do outside the session. Evidence is whatever you show it.

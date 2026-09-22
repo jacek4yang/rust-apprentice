@@ -2,7 +2,7 @@
 name: rust-learn-continue
 description: Continue a Rust apprenticeship from persistent learning state. Resumes the current task or picks the highest-value next step, teaches one small unit, and keeps the learner writing the code. Invoke this when the user explicitly asks to carry on or resume learning Rust, asks to continue their Rust apprenticeship or today's Rust session, asks to be taught the next thing, or types /rust-learn-continue. Signals include "let's continue", "carry on with my Rust", "what should I do next in Rust", "resume my Rust learning". Do not invoke it when Rust is merely mentioned in passing or when the request is about Rust code rather than learning Rust.
 license: MIT
-compatibility: Designed for Claude Code on Windows, macOS, or Linux.
+compatibility: Requires filesystem read/write access and shell execution. For Claude Code and Pi.
 allowed-tools: Read Write Edit Glob Grep Bash
 metadata:
   version: "2.0"

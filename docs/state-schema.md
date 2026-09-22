@@ -18,7 +18,8 @@ State is tiered by read frequency: **hot** (every session, bounded forever), **w
 
 ### Per-user registry (outside the workspace)
 
-`<state dir>/workspaces.yaml`, where `<state dir>` is `$RUST_APPRENTICE_STATE_DIR`, else `$CLAUDE_SKILLS_STATE_DIR`,
+`<state dir>/workspaces.yaml`, where `<state dir>` is `$RUST_APPRENTICE_STATE_DIR`, else `$CLAUDE_SKILLS_STATE_DIR`
+(a legacy Claude Code compatibility fallback),
 else the platform default (Windows `%APPDATA%\rust-apprentice\`, macOS `~/Library/Application Support/rust-apprentice/`,
 Linux `$XDG_STATE_HOME/rust-apprentice/` or `~/.local/state/rust-apprentice/`).
 

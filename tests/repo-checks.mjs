@@ -443,6 +443,66 @@ check("no SKILL.md inlines curriculum content", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Pi prompt aliases
+//
+// prompts/ is the Pi adapter: three thin wrappers that route to the shared
+// skills. They must stay thin and must never grow teaching, state or
+// curriculum content — that belongs in skills/ only.
+// ---------------------------------------------------------------------------
+
+const promptsDir = join(ROOT, "prompts");
+
+check("exactly three Pi prompt aliases exist with matching filenames", () => {
+  if (!existsSync(promptsDir)) return "prompts/ directory is missing";
+  const actual = readdirSync(promptsDir, { withFileTypes: true })
+    .filter((e) => e.isFile())
+    .map((e) => e.name.replace(/\.md$/, ""))
+    .sort();
+  const expected = [...EXPECTED_SKILLS].sort();
+  return JSON.stringify(actual) === JSON.stringify(expected)
+    ? null
+    : `expected [${expected.join(", ")}], found [${actual.join(", ")}]`;
+});
+
+for (const name of EXPECTED_SKILLS) {
+  const file = join(promptsDir, `${name}.md`);
+  check(`Pi alias ${name} is a thin wrapper`, () => {
+    if (!existsSync(file)) return "missing";
+    const text = readFileSync(file, "utf8");
+    const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (!fm) return "missing frontmatter";
+    if (!/^description: \S/m.test(fm[1])) return "frontmatter lacks a description";
+    if (!/^argument-hint: \S/m.test(fm[1])) return "frontmatter lacks an argument-hint";
+    const body = text.slice(fm[0].length).replace(/\r/g, "");
+    if (!body.includes(`load and follow the \`${name}\` skill`)) {
+      return `does not route to the ${name} skill`;
+    }
+    if (!body.includes("$ARGUMENTS")) return "does not pass $ARGUMENTS through";
+    const meaningful = body.split(/\n/).filter((l) => l.trim() && l.trim() !== "$ARGUMENTS");
+    if (meaningful.length > 3) return `has ${meaningful.length} content lines; aliases must stay thin`;
+    return null;
+  });
+}
+
+check("no duplicated teaching logic outside skills/", () => {
+  // Anything in the adapters that looks like curriculum or state content is drift.
+  const problems = [];
+  for (const file of EXPECTED_SKILLS.map((n) => join(promptsDir, `${n}.md`))) {
+    if (!existsSync(file)) continue;
+    const text = readFileSync(file, "utf8");
+    if (/mastery|review queue|learner model|curriculum|hint ladder|```rust/.test(text)) {
+      problems.push(`${rel(file)} contains teaching or state vocabulary`);
+    }
+  }
+  return problems.length ? problems.join("; ") : null;
+});
+
+check("no Claude-specific duplicate of the core skills exists", () => {
+  const duplicates = [join(ROOT, ".pi"), join(ROOT, ".claude", "skills")].filter((d) => existsSync(d));
+  return duplicates.length ? `unexpected skill copies: ${duplicates.map(rel).join(", ")}` : null;
+});
+
+// ---------------------------------------------------------------------------
 // Report
 // ---------------------------------------------------------------------------
 
