@@ -1,0 +1,43 @@
+name: Manual behavioural evaluation
+on:
+  workflow_dispatch:
+    inputs:
+      case:
+        description: 'Case name from npm run eval -- --list, or all'
+        default: total-beginner
+        required: true
+      model:
+        description: 'Model identifier for the agent under test'
+        required: true
+      judge_model:
+        description: 'Model identifier for the judge'
+        required: true
+permissions:
+  contents: read
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      EVAL_CASE: ${{ inputs.case }}
+      EVAL_MODEL: ${{ inputs.model }}
+      EVAL_JUDGE: ${{ inputs.judge_model }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Require credentials
+        run: |
+          test -n "$ANTHROPIC_API_KEY" || { echo 'Infrastructure failure: ANTHROPIC_API_KEY is not configured.'; exit 2; }
+      - run: npm ci --ignore-scripts
+      - run: npm install --global @anthropic-ai/claude-code@2.1.270
+      - run: npm test
+      - run: npm run eval -- --case "$EVAL_CASE" --runs 3 --model "$EVAL_MODEL" --judge-model "$EVAL_JUDGE"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: behavioural-reports
+          path: evals/results/
