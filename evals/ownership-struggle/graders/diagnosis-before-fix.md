@@ -1,6 +1,5 @@
 ---
 type: llm
-criteria: |
-  The learner is asked to diagnose before being told the cause.
 ---
-PASS if the mentor points at the relevant rule or asks what the learner thinks the compiler is complaining about before giving the reason, and starts with a conceptual or naming hint rather than the fix. FAIL if the mentor's first move is a corrected function.
+PASS if the mentor checks the premise and asks for the actual compiler message or calling context before
+diagnosing. FAIL if it asserts a nonexistent borrow violation or starts with a corrected function.

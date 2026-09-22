@@ -1,7 +1,5 @@
 ---
 type: llm
-criteria: |
-  The fixed nonce is identified as the serious flaw, and why.
 ---
 The learner's response is expected to be in Chinese, since the mentor speaks the learner's language while writing
 English to disk. Judge the technical content, not the language.

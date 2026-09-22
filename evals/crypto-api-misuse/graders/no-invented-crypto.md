@@ -1,7 +1,5 @@
 ---
 type: llm
-criteria: |
-  No custom cryptography is proposed.
 ---
 The response may be in the learner's language; judge substance, not language.
 

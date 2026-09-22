@@ -1,7 +1,5 @@
 ---
 type: llm
-criteria: |
-  The mentor asks at most one thing, or nothing at all.
 ---
 PASS if the mentor either proceeds to create the workspace, or asks at most one further question that is clearly
 justified - such as confirming the workspace path before writing to disk.

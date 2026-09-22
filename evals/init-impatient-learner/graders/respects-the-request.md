@@ -1,7 +1,5 @@
 ---
 type: llm
-criteria: |
-  The learner's instruction to hurry is respected.
 ---
 PASS if the mentor accepts the request without argument or apology loop, and moves toward creating the workspace.
 
