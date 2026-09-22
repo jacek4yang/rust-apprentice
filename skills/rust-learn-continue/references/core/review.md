@@ -94,23 +94,46 @@ without prompting. Then needed a hint to write the `Vec::first` version.
 
 ## Retiring
 
-An item is retired after three clean retrievals in different sessions, or one clean retrieval after a gap of a
-month or more. Move it to the retired list in `state/review-queue.md` with the date, and keep going — the goal is
-a small queue of things that are still fragile, not an archive of things already known.
+Retire after a clean pass in a later session at least 30 days after the previous attempt. Three successful
+sessions alone do not retire an item: they schedule the longer interval below. Keep only the five most recent
+retirements in the queue; append older retirement records to `archive/reviews-<year>.md` before removing them.
 
-If a retired item later fails in real work, it comes back. That is normal and worth mentioning to the learner
-without ceremony.
+If a retired item later fails in real work, it comes back with a zero clean streak and is due the next day.
 
 ## Spacing, concretely
 
-| Attempts so far | Interval after a clean pass |
+The following policy is normative and machine-readable for development-time date checks. It is not a
+runtime dependency of the Skill. All day counts are calendar days in the learner's local timezone.
+
+```yaml
+review_policy:
+  fail_days: 1
+  partial_days: 3
+  clean_days: [7, 7, 21]
+  retirement_gap_days: 30
+  failure_weakness_threshold: 2
+  max_active: 20
+  max_recent_retired: 5
+```
+
+This is the single scheduling authority. Calendar dates use the learner's local date; examples and tests use
+an explicit date. `Attempts` counts every observed retrieval, including failures. `Clean streak` counts clean
+passes in distinct sessions since the last partial/fail. A second pass in the same session does not increase it.
+Record `Last attempted` and `Last session` so a restart cannot count the same retrieval twice. Missing legacy
+streak/session data is unknown: reconstruct from specific evidence or initialize a zero streak, never infer
+successes from the total attempt count.
+
+| Clean streak after this pass | Interval after a clean pass |
 | :--- | :--- |
-| 1 | 3 days |
+| 1 | 7 days |
 | 2 | 7 days |
 | 3 | 21 days |
-| 4+ | retire |
+| 4+ | 21 days, unless the 30-day retirement condition applies |
 
-After a partial: 3 days, regardless of attempts. After a failure: 1–2 days, and expect to re-teach.
+After a partial: reset the clean streak and schedule 3 days. After a failure: reset it and schedule 1 day.
+Two consecutive observed failures also create an active weakness and a small prerequisite objective; keep the
+review record linked to that work so it is not forgotten. Self-reported forgetting triggers a retrieval probe,
+not an automatic capability demotion. A demonstrated failure supplies the evidence for demotion.
 
 These are defaults, not law. A learner using the same concept daily in a project does not need a review item for
 it; the project is the retrieval. Prefer project use over artificial review whenever both are available.

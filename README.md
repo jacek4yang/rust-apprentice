@@ -60,7 +60,7 @@ system code page or locale to make that happen.
 ### Recommended: the Skills CLI
 
 ```bash
-npx skills@latest add <owner>/rust-apprentice -g -a claude-code --copy
+npx skills@latest add jacek4yang/rust-apprentice -g -a claude-code --copy
 ```
 
 Then, in Claude Code:
@@ -98,7 +98,9 @@ Copy-Item -Recurse rust-apprentice\skills\rust-learn-* "$env:USERPROFILE\.claude
 ```
 
 Or use [`scripts/install.sh`](scripts/install.sh) / [`scripts/install.ps1`](scripts/install.ps1), which do the
-same thing and accept `--uninstall` / `-Uninstall`.
+same thing and accept `--uninstall` / `-Uninstall`. The helpers stage and verify all three skills before
+switching them, restore previous versions after a switch failure, and retain recoverable backups beside the
+skills directory. Uninstall moves the three directories into a backup; unrelated skills are preserved.
 
 To update a manual install, `git pull` and copy the directories again. To uninstall, delete the three directories
 under `~/.claude/skills/`. Nothing else on your machine is touched.
@@ -231,7 +233,8 @@ to write everything, compiler errors, weak and strong Git users, Chinese comment
 plus Windows and encoding scenarios, lazy-loading checks, and a learner with a year of history.
 
 ```bash
-claude plugin eval . --case total-beginner --runs 3 --ablation none --trust-plugin
+npm ci --ignore-scripts
+npm run eval -- --case total-beginner --runs 3
 ```
 
 See [`evals/README.md`](evals/README.md).
@@ -239,6 +242,8 @@ See [`evals/README.md`](evals/README.md).
 Static checks run in CI and locally:
 
 ```bash
+npm ci --ignore-scripts          # development tools only; Node 20+ and Rust are used by tests
+npm test                        # repository, state, eval fixture and installer contracts
 node tests/repo-checks.mjs       # structure, frontmatter, links, English-only, thin entrypoints
 node tests/validate-skills.mjs   # validates against the Agent Skills specification
 node tests/assert-discovery.mjs  # the Skills CLI finds exactly three skills
@@ -246,11 +251,13 @@ node tests/assert-discovery.mjs  # the Skills CLI finds exactly three skills
 
 ## Status and limitations
 
-- Written and tested primarily against Claude Code. A learning session only starts when you ask for one: the
-  skills carry no automatic-invocation frontmatter, and their descriptions state that a passing mention of Rust
-  is not a trigger. Verified in a real session. [`docs/architecture.md`](docs/architecture.md) explains why the
-  `disable-model-invocation` flag is deliberately **not** used — on Claude Code it prevents the skill from being
-  registered at all.
+- Written primarily for Claude Code. Descriptions limit teaching to explicit learning requests, including
+  natural-language requests. This is model-directed behaviour, not a hard invocation guarantee. The manual-only
+  flag is omitted to keep natural-language requests working; client compatibility needs versioned verification.
+- Structural and isolated installer checks pass locally; full behavioural and long-term learning outcomes
+  remain unverified. See [verification status](docs/validation-status.md) and [eval instructions](evals/README.md).
+- Install all three sibling skills. Plugin installation uses namespaced commands such as
+  `/rust-apprentice:rust-learn-init`; personal/project Skill installs use `/rust-learn-init`.
 - The workspace may be moved between machines by copying the directory. After a move, tell the mentor the new
   path once.
 - The mentor cannot verify anything you do outside the session. Evidence is whatever you show it.

@@ -3,8 +3,8 @@
 The compact index. Read by every `/rust-learn-continue` invocation and summarised by `/rust-learn-status`.
 Replace every placeholder; do not leave an example value in a real workspace.
 
-Keep it bounded: domain summaries only, no concept lists, no evidence, no dates beyond `updated`. Detail belongs
-in `learner/evidence/<topic>.md`.
+Keep it bounded: at most three short items per domain summary field, no evidence narrative, and only
+`updated` and optional `stage_since` dates. Detail belongs in `learner/evidence/<topic>.md`.
 
 ```yaml
 schema: rust-apprentice/1
@@ -78,7 +78,7 @@ domains:
     state: practiced
     strengths: [integration tests, table-driven tests]
   networking:
-    state: developing
+    state: practiced
     strengths: [TCP connection lifecycle, HTTP request and response semantics]
     active: [async socket programming]
     weak: [connection lifecycle under failure]

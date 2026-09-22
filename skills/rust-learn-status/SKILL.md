@@ -26,6 +26,8 @@ Occasional progress inspection. Compact by default; detail only when asked for.
 
 Follow [workspace.md](../rust-learn-continue/references/core/workspace.md). Same discovery as
 `/rust-learn-continue`. No workspace → say so in one line and point at `/rust-learn-init`.
+Follow validated marker pointers. Unknown versions stop inspection; incomplete or damaged state is reported
+without modification. Never migrate, repair, register or update activity timestamps just to show status.
 
 ## Step 2 — Read only the hot state
 
@@ -61,8 +63,9 @@ Load nothing else. Do not expand into other domains because they look related.
 
 ## Step 5 — Hand back
 
-If the learner wants to continue, do not make them retype anything — continue the work directly, since the
-objective is already loaded.
+If the learner explicitly wants to continue, load [the continue protocol](../rust-learn-continue/SKILL.md)
+and its required state, then continue without making them retype a command. Only that transition permits
+teaching and evidence writes. The status report itself is read-only.
 
 If the report surfaced a due review or an active weakness worth working on now, say so in one line and offer to
 start there.

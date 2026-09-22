@@ -1,6 +1,8 @@
 # Workspace: layout, discovery, and state
 
-Authoritative for both skills. If anything disagrees with this file, this file wins.
+Authoritative for discovery and paths across all three skills. State shape belongs to
+[state-format.md](state-format.md), vocabulary to [mastery-model.md](mastery-model.md), version handling to
+[state-migration.md](state-migration.md), and review scheduling to [review.md](review.md).
 
 ## Principles
 
@@ -56,8 +58,10 @@ learner_model: state/learner-model.md
 review_queue: state/review-queue.md
 ```
 
-`state:`, `learner_model:` and `review_queue:` are paths relative to the workspace root. Changing the layout later means editing this
-file, and nothing else. Do not put learner content in it.
+`learner:`, `state:`, `learner_model:` and `review_queue:` are distinct file paths relative to the workspace root.
+Always follow these pointers, not hardcoded example paths. Reject absolute paths, drive-relative paths,
+`..` components, streams and symlinks/junctions that escape the workspace, including existing parents of a
+missing file. Validate identity, schema and paths before following them. Do not put learner content in the marker.
 
 ## Discovery
 
@@ -67,8 +71,9 @@ file, and nothing else. Do not put learner content in it.
 
 From `cwd`, check the directory and each parent up to the filesystem root for a file named `rust-apprentice.yaml`.
 
-- Found and it parses and `schema` starts with `rust-apprentice/` → that is the workspace.
-- Found but malformed → tell the learner, do not silently reinitialize. Offer to repair the marker.
+- Found → stop searching and classify it using [state-migration.md](state-migration.md), including exact
+  version and required-file checks. A legacy or incomplete marker must not fall through to another workspace.
+- Found but malformed or unsupported → explain the issue; do not follow unsafe pointers or silently reinitialize.
 
 This makes "open a terminal inside the workspace and type `/rust-learn-continue`" always work, and it is the only
 mechanism that survives a machine change with no registry present.
@@ -144,8 +149,15 @@ The split exists so a session ten years from now reads the same small amount of 
 | `notes/<topic>.md` | on demand | when a note is worth keeping | grows |
 | `archive/` | rarely, on request | during a rollup | grows |
 
-`state/log.md` is trimmed: when it exceeds roughly 150 lines, move everything older than 30 days into
-`archive/log-<year>.md` and keep the recent tail.
+Append logs oldest first, newest last. When `state/log.md` exceeds 150 lines, append all but the newest 100
+event lines to `archive/log-<year>.md`, verify the archive, then remove those lines from hot state. The count
+limit applies even if every event occurred today. Avoid duplicate event IDs when recovering interrupted rollups.
+
+Keep progress at most 60 lines, learner model at most 120, profile at most 80, and active reviews at most 20.
+Archive historical profile observations with a pointer; retain claims/observations separately and the current
+environment/language summary. A session's hot reads total at most 400 lines, including 20 log-tail lines and
+one newest session summary; Skill/reference material is measured separately. Retired reviews keep only five
+recent entries, with the rest in the archive. Never delete evidence to meet a context budget.
 
 ## Cross-platform rules
 

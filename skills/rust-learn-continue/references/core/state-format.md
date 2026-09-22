@@ -32,6 +32,8 @@ The work in flight: the current objective, its exact next action, blockers, and 
 
 updated: 2026-09-16
 phase: applied
+project: logscan
+domain: rust-language
 
 ## Objective
 
@@ -57,6 +59,8 @@ Then discuss mapping the error type with `map_err`.
 Notes:
 
 - `phase` is one of `fundamentals`, `applied`, `project`, `systems`.
+- `project` is a name or `(none yet)`; `domain` is a curriculum ID (including Git and English).
+  This file owns current work. The learner model's `current` mirrors these fields and the objective/next action.
 - `status` is one of `in-progress`, `blocked`, `awaiting-learner`, `done`.
 - `Next action` must be concrete enough to start without thinking. It is the most important line in the
   workspace.
@@ -74,7 +78,7 @@ unnecessary.
 
 ## `state/review-queue.md`
 
-Active recall scheduling. Bounded: an item leaves after three successful retrievals across separate sessions.
+Active recall scheduling. [review.md](review.md) is the single authority for spacing and retirement.
 
 ```markdown
 # Review queue
@@ -83,37 +87,29 @@ updated: 2026-09-16
 
 ## Due
 
-| Concept | Due | Attempts | Last result |
-| :--- | :--- | :--- | :--- |
-| borrowing rules | 2026-09-16 | 2 | pass |
-| `String` vs `&str` | 2026-09-16 | 1 | partial |
-| module visibility | 2026-09-14 | 1 | fail |
+| Concept | Due | Attempts | Last result | Clean streak | Last attempted | Last session |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| borrowing rules | 2026-09-16 | 2 | pass | 2 | 2026-09-09 | 2026-09-09-a |
+| `String` vs `&str` | 2026-09-16 | 1 | partial | 0 | 2026-09-13 | 2026-09-13-a |
+| module visibility | 2026-09-14 | 1 | fail | 0 | 2026-09-13 | 2026-09-13-a |
 
 ## Scheduled
 
-| Concept | Due | Attempts | Last result |
-| :--- | :--- | :--- | :--- |
-| ownership and moves | 2026-09-22 | 3 | pass |
-| pattern matching | 2026-09-19 | 1 | pass |
+| Concept | Due | Attempts | Last result | Clean streak | Last attempted | Last session |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| ownership and moves | 2026-10-06 | 3 | pass | 3 | 2026-09-15 | 2026-09-15-a |
+| pattern matching | 2026-09-19 | 1 | pass | 1 | 2026-09-12 | 2026-09-12-a |
 
 ## Retired
 
-- `let`/`mut` basics — 3 clean retrievals, retired 2026-09-02.
+- `let`/`mut` basics — clean recall after a 30-day gap, retired 2026-09-02.
 ```
 
-Scheduling rules:
+Use the exact rules in [review.md](review.md); do not derive successful streaks from `Attempts`.
 
-| Result | Next interval |
-| :--- | :--- |
-| fail | 1–2 days, and re-teach if it fails twice |
-| partial | 3 days |
-| pass, first or second attempt | 7 days |
-| pass, third attempt or clean after a long gap | 21 days |
-| clean pass after a month | retire, note it in evidence |
-
-- Anything failing twice in a row is an active weakness, not a review item. Move it to `progress.md`.
-- Keep the queue under ~20 items. A queue nobody finishes is a queue that gets ignored; if it is longer, retire
-  the least relevant items and say so.
+- Keep at most 20 active items. Defer low-priority overflow to a linked cold backlog, with its due date;
+  deferring is not successful retirement. Review that backlog only when capacity becomes available.
+- Keep at most five recent retirements and archive older ones without losing records.
 - Retrieval is active recall, never rereading. Forms are in [review.md](review.md).
 
 ## `state/log.md`
@@ -123,18 +119,20 @@ One line per meaningful event. Rolling; trim as described in [workspace.md](work
 ```markdown
 # Log
 
-- 2026-09-16 — Added `Result`/`?` to the review queue after a partial explanation in session.
-- 2026-09-16 — Session: implemented `parse_record` error propagation with a rung-2 hint.
-- 2026-09-14 — Project `logscan` created with `cargo new`; learner chose the name.
 - 2026-09-12 — First commit by the learner, message written unaided.
+- 2026-09-14 — Project `logscan` created with `cargo new`; learner chose the name.
+- 2026-09-16 — Session: implemented `parse_record` error propagation with a rung-2 hint.
+- 2026-09-16 — Added `Result`/`?` to the review queue after a partial explanation in session.
 ```
 
 Rules: date, then a fact. No evaluation, no summary paragraphs. If a line needs more than ~120 characters, the
 detail belongs in evidence.
+Append in chronological order, oldest first, newest last. Read only the last 20 lines during ordinary startup.
 
 ## `state/sessions/<date>.md`
 
 Written at the end of a session that produced something. Five to fifteen lines.
+Use `<date>-<unique-id>.md` when a date already exists; never replace an earlier session that day.
 
 ```markdown
 # 2026-09-16
@@ -177,3 +175,17 @@ coverage check and [project-learning.md](../curriculum/project-learning.md) for 
 - Not on: greetings, questions answered by you, clarifications, re-explanations.
 - Never regenerate a whole file when one row changed. Edit in place.
 - If you are unsure whether something is evidence, it is not. Leave it out.
+
+## Interrupted updates
+
+For a meaningful observation, assign a stable event ID and keep a short pending record in `state/pending.md`
+with that ID, the specific evidence file, and remaining updates. Append factual evidence once, then update
+progress (current-work authority), the learner-model mirror, and any review item. Finish the event by appending
+its ID to the log and session summary, updating registry activity, and clearing the pending record.
+
+On resume, inspect this one pending record and its pointed-to evidence only. Complete missing updates using
+the same ID; do not count a retrieval twice or invent new observations. If no pending record exists but
+progress and the learner model disagree, repair only the mirror from progress. If capability evidence is
+unclear, leave the capability unchanged and ask a focused probe. Never scan all history to reconstruct a guess.
+
+Status does not perform these writes; report a pending update and hand it to continue when requested.

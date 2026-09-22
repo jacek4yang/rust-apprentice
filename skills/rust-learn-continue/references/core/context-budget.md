@@ -11,11 +11,13 @@ This file defines the loading discipline. Treat it as an engineering constraint,
 | Tier | What | When to read | Typical cost |
 | :--- | :--- | :--- | :--- |
 | **Hot** | `rust-apprentice.yaml`, `state/progress.md`, `state/learner-model.md`, `state/review-queue.md`, last few `state/log.md` lines, newest `state/sessions/` entry | Every `/rust-learn-continue` invocation | A few hundred lines, bounded forever |
-| **Warm** | `learner/profile.md`, current domain's evidence file, recent session summaries, the one domain reference the objective needs | When the session's objective requires it | One or two files |
+| **Warm** | Current domain's evidence file, older session summaries, the one domain reference the objective needs | When the session's objective requires it | One or two files |
 | **Cold** | `notes/`, `archive/`, other domains' evidence, finished projects, old sessions | Rarely, on explicit need | Should not enter an ordinary session |
 
-The hot tier must not grow with the age of the apprenticeship. If it does, that is a bug in the state design, not
-a fact of life.
+The bounded profile is also part of startup state. The hot tier must not grow with the age of the apprenticeship.
+Use the limits and lossless rollup rules in [workspace.md](workspace.md): at most 400 hot-state lines per startup,
+including one newest session, a 20-line log tail, and any pending-event pointer. Measure Skill/reference reads
+separately. Read `state/pending.md` only if it exists; its specific evidence pointer is a recovery exception.
 
 ## The loading test
 

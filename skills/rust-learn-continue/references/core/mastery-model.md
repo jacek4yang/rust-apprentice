@@ -73,7 +73,7 @@ Example domain entry:
 
 ```yaml
 networking:
-  state: developing
+  state: practiced
   strengths:
     - TCP connection lifecycle
     - HTTP request and response semantics

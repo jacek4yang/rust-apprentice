@@ -4,7 +4,8 @@ The compact index that answers "what does this learner need right now?" without 
 `/rust-learn-continue` invocation and shown, summarised, by `/rust-learn-status`.
 
 **Bounded by design.** This file must stay small enough to read in one pass for years. Domain summaries only —
-no concept lists, no dates beyond `updated`, no evidence. Detail belongs in `learner/evidence/<topic>.md`.
+at most three short items per domain field, only `updated` and optional `stage_since` dates, no evidence
+narrative. Detail belongs in `learner/evidence/<topic>.md`. Keep this file at most 120 lines.
 
 ## Format
 
@@ -41,7 +42,7 @@ domains:
     state: guided
     active: [hash map internals]
   networking:
-    state: developing
+    state: practiced
     strengths: [TCP connection lifecycle, HTTP request and response semantics]
     active: [async socket programming]
     weak: [connection lifecycle under failure]
@@ -78,6 +79,14 @@ goals:
 - **At most five weaknesses.** A sixth retires the least relevant one to evidence.
 - **At most three strengths per domain.** If a domain has more, it is strong; say so with the state and move on.
 - **`next_review` holds at most three items** per domain. Full scheduling lives in `state/review-queue.md`.
+- **`active` and `weak` hold at most three items each** per domain. Keep at most five blockers and five active
+  goals; durable goals remain in `learner/goals.md`.
+- **Vocabulary authority:** [mastery-model.md](mastery-model.md) defines domain states, `independence` and
+  `git_level`. `stage` is A..G; `english_stage` is A..E. Domain IDs come from the curriculum index, plus
+  `git-github` and `engineering-english`. An initial objective may name a domain not yet demonstrated.
+- **Current-work authority:** the marker's `state` file owns project, domain, objective and next action.
+  `current` here is its mirror; repair a stale mirror from progress, never overwrite progress from the mirror.
+  Evidence remains authoritative for capability claims. See [state-format.md](state-format.md) for interrupted writes.
 - **Do not add a domain before it is touched.** Nineteen domains with `unseen` states is noise; absent is clearer.
 - **Update in place.** Change the one line that changed. Never regenerate the file.
 - **`updated` changes only when content changes**, not on every read.
