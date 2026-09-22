@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Asserts that the Skills CLI discovers exactly the two expected skills in this repository.
+ * Asserts that the pinned Skills CLI discovers exactly the three expected skills.
  *
  * Runs `skills add . --list`, which resolves this repository the same way
  * `skills add <owner>/<repo>` will, so a layout change that breaks installation fails here rather than for a
@@ -9,7 +9,7 @@
  * Usage: node tests/assert-discovery.mjs
  */
 
-import { execFileSync } from "node:child_process";
+import { packageCli } from "./lib/package-cli.mjs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -18,10 +18,9 @@ const EXPECTED = ["rust-learn-continue", "rust-learn-init", "rust-learn-status"]
 
 let output;
 try {
-  output = execFileSync("npx", ["--yes", "skills@latest", "add", ".", "--list"], {
+  output = packageCli("skills", ["add", ".", "--list"], {
     cwd: ROOT,
     encoding: "utf8",
-    shell: process.platform === "win32",
     stdio: ["ignore", "pipe", "pipe"],
   });
 } catch (error) {

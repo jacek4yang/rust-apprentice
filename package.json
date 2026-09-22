@@ -1,0 +1,15 @@
+{
+  "name": "rust-apprentice-checks",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/repo-checks.mjs && node tests/state-contracts.mjs && node tests/review-policy.mjs && node tests/eval-contracts.mjs && node tests/eval-audit.mjs && node tests/installers.mjs",
+    "eval": "node scripts/run-evals.mjs"
+  },
+  "devDependencies": {
+    "skills": "1.7.0",
+    "skills-ref": "0.1.5",
+    "yaml": "2.9.1"
+  },
+  "engines": { "node": ">=20" }
+}

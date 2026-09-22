@@ -2,7 +2,7 @@
 /**
  * Static repository checks for rust-apprentice.
  *
- * Validates the things CI must never let regress: exactly two skills, valid frontmatter, resolvable local
+ * Validates the things CI must never let regress: exactly three skills, valid frontmatter, resolvable local
  * references, English-only source, and the absence of hardcoded workspace paths.
  *
  * Usage: node tests/repo-checks.mjs
@@ -35,7 +35,7 @@ function walk(dir, predicate = () => true) {
   const out = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...walk(full, predicate));
+    if (entry.isDirectory() && ![".git", "node_modules", "results"].includes(entry.name)) out.push(...walk(full, predicate));
     else if (predicate(full)) out.push(full);
   }
   return out;
@@ -142,13 +142,11 @@ for (const name of skillNames) {
     return null;
   });
 
-  check(`${name}: never opts out of skill registration`, () => {
-    // Measured on Claude Code: a personal skill with disable-model-invocation: true is not registered at all.
-    // The /name command does not resolve and the skill is absent from the model's listing, so it is effectively
-    // uninstalled. The user-invoked-only requirement is met by the description instead, asserted separately.
+  check(`${name}: allows explicit natural-language learning requests`, () => {
+    // Keep natural-language explicit requests enabled by repository policy.
     const value = String(fm["disable-model-invocation"] ?? "").toLowerCase();
     return ["true", "yes", "on", "1"].includes(value)
-      ? "disable-model-invocation: true stops Claude Code registering the skill at all; scope invocation in the description instead"
+      ? "manual-only invocation would disable the supported natural-language learning requests"
       : null;
   });
 
@@ -285,8 +283,6 @@ check("no Chinese text in code, scripts, workflows, or skill files", () => {
     if (path.startsWith("evals/results/")) continue; // eval transcripts quote learner messages verbatim
     if (path === "skills/rust-learn-continue/references/curriculum/engineering-english.md") continue; // documents the rule
     if (path === "tests/repo-checks.mjs") continue; // contains CJK unicode-range escapes by design
-    if (path === "tests/repo-checks.mjs") continue; // contains CJK unicode-range escapes by design
-    if (path === "tests/repo-checks.mjs") continue; // contains CJK unicode-range escapes by design
     if (/\.(md)$/i.test(path) && path.startsWith("docs/")) continue; // docs explain the language policy
     if (!codeExt.test(path) && !path.endsWith("SKILL.md")) continue;
     if (hasChinese(readFileSync(file, "utf8"))) problems.push(path);
@@ -319,13 +315,13 @@ check("workspace.md documents every discovery mechanism", () => {
   return missing.length ? `not documented: ${missing.join(", ")}` : null;
 });
 
-check("no skill opts out of registration", () => {
+check("all skills preserve the explicit-request invocation policy", () => {
   const problems = [];
   for (const name of skillNames) {
     const text = readFileSync(join(skillsDir, name, "SKILL.md"), "utf8");
     if (/^disable-model-invocation:\s*(true|yes|on|1)\s*$/im.test(text)) problems.push(name);
   }
-  return problems.length ? `${problems.join(", ")} would not be registered by Claude Code` : null;
+  return problems.length ? `${problems.join(", ")} would disable model invocation of explicit learning requests` : null;
 });
 
 check("SKILL.md files never instruct Claude to create a default workspace", () => {
@@ -339,7 +335,7 @@ check("SKILL.md files never instruct Claude to create a default workspace", () =
   return problems.length ? problems.join(", ") : null;
 });
 
-check("the two entrypoints are the only user-facing commands in the docs", () => {
+check("the three entrypoints are the only user-facing commands in the docs", () => {
   const commands = new Set();
   for (const file of walk(ROOT, (f) => f.endsWith(".md") || f.endsWith(".mjs"))) {
     const path = rel(file);
@@ -364,7 +360,9 @@ check("CI workflow exists and runs the checks", () => {
   if (!existsSync(workflow)) return "missing .github/workflows/ci.yml";
   const text = readFileSync(workflow, "utf8");
   const required = ["repo-checks.mjs", "validate-skills.mjs", "assert-discovery.mjs"];
-  const missing = required.filter((script) => !text.includes(script));
+  const packageScripts = text.includes("npm test")
+    ? JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).scripts.test : "";
+  const missing = required.filter((script) => !`${text}\n${packageScripts}`.includes(script));
   return missing.length ? `CI does not run: ${missing.join(", ")}` : null;
 });
 
@@ -439,19 +437,6 @@ check("no SKILL.md inlines curriculum content", () => {
     if (!existsSync(file)) continue;
     const text = readFileSync(file, "utf8");
     const fences = (text.match(/^```/gm) ?? []).length;
-    if (fences > 8) problems.push(`${name} has ${fences / 2} code blocks, suggesting inlined teaching content`);
-  }
-  return problems.length ? problems.join("; ") : null;
-});
-
-check("no SKILL.md inlines curriculum content", () => {
-  // A router should point at references, not contain the teaching material itself.
-  const problems = [];
-  for (const name of skillNames) {
-    const file = join(skillsDir, name, "SKILL.md");
-    if (!existsSync(file)) continue;
-    const text = readFileSync(file, "utf8");
-    const fences = (text.match(/^```/gm) ?? []).length;  
     if (fences > 8) problems.push(`${name} has ${fences / 2} code blocks, suggesting inlined teaching content`);
   }
   return problems.length ? problems.join("; ") : null;
