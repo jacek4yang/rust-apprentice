@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: ownership-struggle
+context:
+  scaffold_script: scaffold.sh

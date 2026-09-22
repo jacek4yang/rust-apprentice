@@ -7,10 +7,18 @@ How `rust-apprentice` is put together, and why.
 Three user-facing skills, one persistent learning workspace, and a small per-user registry.
 
 ```
-Claude Code
-  ├── /rust-learn-init      (personal skill, user-invoked only)
-  ├── /rust-learn-continue  (personal skill, user-invoked only)
-  └── /rust-learn-status    (personal skill, user-invoked only)
+                shared skills/            ← the portable core: teaching, curriculum,
+                    |                       state, workspace behaviour
+          +-----------+-----------+
+          |                       |
+      Claude Code                 Pi
+          |                       |
+   .claude-plugin/             prompts/    ← per-harness adapters only
+          |                       |
+   /rust-learn-*             /rust-learn-*
+                                  |
+                        /skill:rust-learn-*
+                        native fallback
 
 rust-apprentice registry  (~/.local/state/rust-apprentice/workspaces.yaml ...)
   └── points at one or more workspaces
@@ -24,8 +32,14 @@ Learning workspace  (<learner-chosen path>)
   └── ...
 ```
 
+`skills/` is the single source of truth for teaching logic, curriculum routing and workspace/state behaviour.
+`.claude-plugin/` is Claude-specific integration; `prompts/` is Pi-specific command UX. Both adapters only route
+to the same shared skills — duplicated curriculum, state or teaching logic across harnesses is a defect, not a
+pattern. The learning workspace is shared too: a workspace initialized under Claude Code is used by Pi unchanged,
+and the other way round.
+
 Nothing else runs. There is no service, no database, no build step, no runtime dependency. The skills are Markdown
-plus three Node scripts used only by tests and CI.
+plus development-only Node checks and isolated fixtures used by tests and CI.
 
 ## Why exactly three skills
 
@@ -47,37 +61,26 @@ Everything that other systems would model as separate commands — review, proje
 is a *decision* made by `/rust-learn-continue`, not a command the learner types. See
 `skills/rust-learn-continue/references/core/domain-selection.md`.
 
-Invocation control is handled in the `description` rather than with a frontmatter flag, for a measured reason.
+## Invocation compatibility
 
-### Why there is no `disable-model-invocation` here
+The product accepts slash commands and explicit natural-language learning requests. Descriptions therefore
+scope invocation to those requests and reject passing mentions or ordinary Rust coding tasks. This is a model
+instruction, not a deterministic permission boundary; invocation behaviour needs real-client tests.
 
-The obvious way to guarantee "the learner controls when learning begins" is `disable-model-invocation: true`. On
-Claude Code, for a personal skill in `~/.claude/skills/`, that flag does something different from what its
-documentation implies: the skill is **not registered at all**. The `/rust-learn-init` command does not resolve, and
-the skill is absent from the model's skill listing. The result is an uninstalled skill, not a user-invoked one.
+Claude Code-specific finding: we deliberately omit `disable-model-invocation` to preserve natural-language
+requests. The current [Claude Code documentation](https://code.claude.com/docs/en/skills#control-who-invokes-a-skill)
+says setting it allows manual invocation while preventing model invocation. A previous repository experiment
+reported that manual commands disappeared, but did not preserve the client version or reproducible trace. Treat
+that as an unverified historical observation about Claude Code, not a rule about every client.
 
-Verified by installing both variants and inspecting a session:
+Portable frontmatter validation is separate from client invocation tests. Install all three sibling skills
+because init and status share continue references. On Claude Code, personal/project installs use
+`/rust-learn-init` and its siblings; plugin installs use the `/rust-apprentice:rust-learn-init` namespace. On
+Pi, the `prompts/` aliases expose the same `/rust-learn-*` commands and the native `/skill:<name>` commands
+remain as a fallback. Test these modes in isolated client configuration before claiming compatibility with a
+specific release.
 
-| Frontmatter | `/rust-learn-init` resolves | Present in the model's listing |
-| :--- | :--- | :--- |
-| `disable-model-invocation: true` | no | no |
-| `disable-model-invocation: false` | yes | yes |
-
-With the flag absent, the skill registers normally. The remaining question — does the model start a learning
-session merely because Rust was mentioned? — was tested directly: a session whose prompt mentioned thinking about
-learning Rust someday, then asked an unrelated question about hash maps, answered the hash map question and did not
-touch the apprenticeship. What prevents the unwanted invocation is the description, which states that the skill is
-invoked only when the user explicitly asks and that a passing mention of Rust is not a trigger.
-
-Both properties are therefore enforced by checks that fail loudly if either drifts:
-
-- `tests/repo-checks.mjs` rejects any skill that sets `disable-model-invocation`, and requires each description to
-  scope its own invocation in those words.
-- `tests/validate-skills.mjs` rejects any field outside the portable Agent Skills subset, so the previous
-  portability problem cannot return.
-
-A useful side effect: with no Claude Code-only frontmatter, all three `SKILL.md` files validate directly against
-the Agent Skills specification, and remain usable by any compatible client.
+See [validation-status.md](validation-status.md) for measured results and outstanding real-client checks.
 
 ## Progressive disclosure and the context budget
 
@@ -159,7 +162,10 @@ Recorded so future changes can be judged against them:
 by accident:
 
 - exactly three skills, with the exact expected names;
-- valid frontmatter, and never `disable-model-invocation`;
+- exactly three Pi prompt aliases in `prompts/`, matching the three public commands by filename, each thin
+  (valid frontmatter, references its matching skill, passes `$ARGUMENTS`, no duplicated skill content);
+- no Pi-side or Claude-side copy of curriculum/state/teaching logic — `skills/` stays the only source;
+- valid frontmatter, and the repository's explicit-request invocation policy;
 - every description scoping its own invocation;
 - every relative link inside the skills resolving;
 - no Chinese in code, scripts, workflows or skill prose;
@@ -177,4 +183,5 @@ three skills, which catches layout changes that would break `npx skills add <own
 `tests/fix-links.mjs` is a maintenance aid, not a check: it repairs relative links after a file is moved, when the
 target's new location is unambiguous.
 
-Behavioural evaluation lives in `evals/` and runs with `claude plugin eval`.
+Behavioural evaluation lives in `evals/` and runs with `claude plugin eval`; Pi-side behavioural evaluation is
+not yet built.

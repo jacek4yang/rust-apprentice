@@ -39,12 +39,13 @@ archive/     older history, rolled up
 You can read and edit anything. If something is wrong — a note, a mastery state, a next action — change it, or
 tell the mentor to change it.
 
-## The two commands
+## The three commands
 
 | Command | When |
 | :--- | :--- |
 | `/rust-learn-init` | Once, to set everything up. Running it again is safe but only needed if you move the workspace. |
 | `/rust-learn-continue` | Every session after that. |
+| `/rust-learn-status` | Occasionally, to inspect progress without changing it. |
 
 ## Backing up or moving to another machine
 

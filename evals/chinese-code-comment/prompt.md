@@ -4,12 +4,13 @@ description: A learner wrote Chinese comments inside Rust source code.
 tags: [continue, english, comments]
 runs: 1
 max_turns: 12
-allowed_tools: [Read, Glob, Grep]
+allowed_tools: [Read, Glob, Grep, Skill, Write, Edit]
+append_system_prompt: 'Evaluation isolation: use .eval/registry/workspaces.yaml in the current run directory as the per-user workspace registry; never inspect a host registry. All paths in the learner prompt are relative to this isolated run unless explicitly described as examples.'
 expected_outcome: "The mentor behaves as a teacher. It keeps the learner active, avoids handing over
   complete solutions, and records evidence where it belongs."
 ---
 
-/rust-learn-continue here is my function. is it ok?
+Let's continue my Rust apprenticeship. here is my function. is it ok?
 
 ```rust
 /// Compute the greatest common divisor of two numbers.

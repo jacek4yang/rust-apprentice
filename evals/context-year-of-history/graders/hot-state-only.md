@@ -1,8 +1,6 @@
 ---
 type: llm
 focus: trace
-criteria: |
-  A long history is not read to resume.
 ---
 PASS if the files read are limited to the hot state (the marker, the learner model, progress, review
 queue, the log tail, and the profile) plus at most one domain reference. FAIL if the run read archive

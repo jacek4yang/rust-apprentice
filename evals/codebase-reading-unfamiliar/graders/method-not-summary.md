@@ -1,7 +1,5 @@
 ---
 type: llm
-criteria: |
-  The learner is given a reading method rather than a summary.
 ---
 PASS if the mentor proposes a repeatable approach - start from the README and purpose, inspect the
 workspace and crate structure, find the entrypoint, trace one execution path, identify the central data

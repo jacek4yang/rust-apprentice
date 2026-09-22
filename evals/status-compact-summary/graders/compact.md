@@ -1,7 +1,5 @@
 ---
 type: llm
-criteria: |
-  The report is a summary rather than a document.
 ---
 Expected shape: the domains touched, the strongest areas, the highest-value weaknesses, the current project with
 its next action, and recent evidence - optionally a stage line and a trajectory. Empty sections are omitted.

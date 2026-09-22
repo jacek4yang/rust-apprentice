@@ -2,7 +2,7 @@
 name: rust-learn-continue
 description: Continue a Rust apprenticeship from persistent learning state. Resumes the current task or picks the highest-value next step, teaches one small unit, and keeps the learner writing the code. Invoke this when the user explicitly asks to carry on or resume learning Rust, asks to continue their Rust apprenticeship or today's Rust session, asks to be taught the next thing, or types /rust-learn-continue. Signals include "let's continue", "carry on with my Rust", "what should I do next in Rust", "resume my Rust learning". Do not invoke it when Rust is merely mentioned in passing or when the request is about Rust code rather than learning Rust.
 license: MIT
-compatibility: Designed for Claude Code on Windows, macOS, or Linux.
+compatibility: Requires filesystem read/write access and shell execution. For Claude Code and Pi.
 allowed-tools: Read Write Edit Glob Grep Bash
 metadata:
   version: "2.0"
@@ -36,18 +36,22 @@ back to a default path; there is no default path.
 
 Only these, and stop when you have enough:
 
+First validate the marker using [state-migration.md](references/core/state-migration.md): exact schema
+`rust-apprentice/1`, required fields/files and safe relative pointers. Unknown versions stop all writes;
+recognized legacy or incomplete state needs recovery before teaching. Follow marker paths over example paths.
+
 - `rust-apprentice.yaml` — schema version and paths.
 - `state/learner-model.md` — stage, domain index, weaknesses, current work.
 - `state/progress.md` — the objective and its exact next action.
 - `state/review-queue.md` — what is due.
 - Last few lines of `state/log.md`, newest `state/sessions/` entry.
 - `learner/profile.md` — who they are, English stage, environment.
+- `state/pending.md`, if present — finish its specific interrupted event before new evidence.
 
 A few hundred lines. Do **not** read `notes/`, `archive/`, other domains' evidence, or past sessions at this
 point. If the hot state is insufficient, that is a state design problem: improve the state, do not read history.
 
-Verify `schema:` starts with `rust-apprentice/`. If it does not, see
-[state-migration.md](references/core/state-migration.md).
+If current-work summaries disagree, progress owns the next action; evidence owns capability claims.
 
 ## Step 3 — Choose one objective
 
@@ -87,11 +91,15 @@ Only when something real happened. Formats in
 
 Never on greetings or clarifications. Never flattery. `"Rust improved"` is not evidence;
 `"Predicted the borrow error correctly without help"` is.
+Follow the event-ID and interrupted-update protocol in state-format.md. Self-reported confusion is a claim,
+not a demonstrated failure: ask for a prediction or attempt before changing mastery.
 
 ## Step 6 — Close
 
 Leave `state/progress.md` pointing at the exact next action, so the next invocation resumes without asking. If
 something was paused for a prerequisite, record why and what resumes it.
+For a session with evidence, append the event to the chronological log, write a unique session summary, and
+update registry activity. Apply the bounded rollup rules in workspace.md; a greeting or status-only turn writes nothing.
 
 ## References
 

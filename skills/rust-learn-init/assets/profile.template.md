@@ -15,7 +15,7 @@ updated: YYYY-MM-DD
 name: <!-- what to call them, or "unspecified" -->
 location/timezone: <!-- only if volunteered; matters for scheduling language -->
 conversation language: Chinese
-english stage: A <!-- A..E, see skills/rust-learn-continue/references/english.md -->
+english stage: A <!-- A..E, see the engineering-english curriculum reference -->
 
 ## Environment
 

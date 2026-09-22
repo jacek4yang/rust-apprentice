@@ -1,7 +1,5 @@
 ---
 type: llm
-criteria: |
-  The learner is left to make the fix.
 ---
 The response may be in the learner's language; judge substance, not language.
 

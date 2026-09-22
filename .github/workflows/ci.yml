@@ -27,7 +27,13 @@ jobs:
           node-version: "20"
 
       - name: Repository checks
-        run: node tests/repo-checks.mjs
+        run: npm ci --ignore-scripts
+        shell: bash
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Offline contracts and fixtures
+        run: npm test
         shell: bash
 
       - name: Validate SKILL.md against the Agent Skills specification

@@ -43,11 +43,12 @@ Not created here, created on first use: `notes/`, `exercises/`, `projects/`, `re
 5. **Write `rust-apprentice.yaml`** using the schema in
    [core/workspace.md](../../rust-learn-continue/references/core/workspace.md).
 6. **Write `README.md`** from [../assets/workspace-readme.template.md](../assets/workspace-readme.template.md),
-   filled in: the learner's name if known, today's date, and the two commands.
+   filled in: the learner's name if known, today's date, and the three commands.
 7. **Write `learner/profile.md`** from [../assets/profile.template.md](../assets/profile.template.md).
 8. **Write the four state files** following
    [core/state-format.md](../../rust-learn-continue/references/core/state-format.md) and
-   [core/learner-model.md](../../rust-learn-continue/references/core/learner-model.md): `progress.md` (the first
+   [core/learner-model.md](../../rust-learn-continue/references/core/learner-model.md), using
+   [the learner model template](../assets/learner-model.template.md): `progress.md` (the first
    objective and its next action), `learner-model.md` (stage, the domains the probes touched, active
    weaknesses), `review-queue.md` (empty, or one item from a probe), `log.md` (one line recording
    initialization).
@@ -75,7 +76,10 @@ finds it by walking up, and does not need the registry at all — which is why a
 
 ## Verifying what you wrote
 
-Before telling the learner you are done, check the marker file parses as YAML and the paths inside it resolve.
+Before telling the learner you are done, check the marker parses as YAML, its exact schema is supported, and
+all four pointers resolve to distinct files inside the workspace. Validate the learner model vocabulary and
+required fields, and check its current work agrees with progress. Classify existing state with
+[state-migration.md](../../rust-learn-continue/references/core/state-migration.md) before modifying it.
 A workspace whose marker is malformed is worse than no workspace, because `/rust-learn-continue` will find it and
 fail.
 
@@ -87,7 +91,7 @@ Allow it, within limits:
 
 - Keep `rust-apprentice.yaml` at the root with the same field names. That is the discovery contract.
 - Keep the current-state files small and separate from the history, whichever directories they live in. Update the
-  `state:` and `review_queue:` paths in the marker, and note the difference in `learner/profile.md` so later
+  `learner:`, `state:`, `learner_model:` and `review_queue:` paths in the marker, and note the difference in `learner/profile.md` so later
   sessions follow it.
 - Do not move `state/` contents into notes or `README.md`, and do not keep everything in one file.
 
@@ -98,4 +102,6 @@ The workspace is a set of plain files, so a partial initialization is recoverabl
 - Marker present, state missing → next `/rust-learn-init` completes it; do not create a second workspace.
 - Workspace directory present, marker missing → ask before writing the marker; the learner may have pointed at an
   existing folder by mistake.
-- Registry entry present, workspace gone → remove the entry and ask where the workspace is now.
+- Registry entry present, workspace gone → ask where it moved; remove an entry only after confirmation.
+- Preserve all existing valid files and observations. Create only missing outputs, then verify the complete
+  workspace before registering it. Repeating init on a complete workspace changes nothing.

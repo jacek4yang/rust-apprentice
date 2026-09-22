@@ -1,127 +1,83 @@
 # Behavioural evaluations
 
-`evals/` holds a suite of learner situations run against the skills using Claude Code's own eval tooling
-(`claude plugin eval`). Each case is a realistic prompt from a learner, plus graders that check what the mentor
-actually did.
-
-## Why these cases
-
-The failure modes this project is most exposed to are behavioural, not structural: a mentor that lectures, that
-writes the learner's code, that trusts a self-assessment, that forgets what happened last month. None of those
-show up in a linter, so they are tested here.
-
-
-## Note on the harness
-
-`claude plugin eval` loads a plugin's skills as a model-invoked capability. These skills are also user-invoked
-commands with no `disable-model-invocation` flag (see [`docs/architecture.md`](../docs/architecture.md) for why
-that flag is not used), so the harness sees them and the cases run against the real skills.
-
-Several cases use a `focus: files` grader to check **what was loaded**. That is deliberate: context efficiency is
-an architectural requirement of this project, and it is only testable by inspecting the files a run actually
-opened.
-
-That has one consequence worth knowing when reading results: in production the learner types the command, so the
-skill is loaded deliberately; under the harness the agent chooses it. Cases that assert the mentor keeps the
-learner active are therefore measuring the skill's constraints under slightly harder conditions than production.
-
-## Running on Windows
-
-A case that asks for `Bash` or `Write` is refused on a machine with no sandbox backend, because the harness will
-not run an unconfined shell. The cases here declare only read-only tools and write nothing, so they run
-everywhere; add `--allow-tools` grants on Linux or macOS when a case genuinely needs them.
+Run development checks first: `npm ci --ignore-scripts`, then `npm test`. Node 20+ and Rust are required
+for development checks only. The installed teaching skills remain Markdown-only.
 
 ## Running
 
-From the repository root:
-
-```bash
-# one case, one run, no baseline arm (cheapest, for iterating)
-claude plugin eval . --case total-beginner --runs 1 --ablation none --trust-plugin
-
-# one case with the no-plugin baseline, to see what the skills actually contribute
-claude plugin eval . --case ownership-struggle --runs 3 --trust-plugin
-
-# the whole suite, failing the build below 0.8
-claude plugin eval . --threshold 0.8 --trust-plugin
+```sh
+npm run eval -- --list
+npm run eval -- --case total-beginner --runs 1
+npm run eval -- --case ownership-observed-failure --runs 3
+npm run eval -- --case all --runs 3
 ```
 
-Useful options: `--case <glob>`, `--tag`, `--model`, `--runs`, `--judge-model`, `--json <path>`, `--keep-temp` to
-preserve a run's sandbox and transcript for debugging.
+The runner invokes cases separately, grants Write/Edit only for write cases, enables scaffolding whenever a
+workspace is required, and always uses `--no-publish`. Initialization and missing-workspace cases deliberately
+use `--no-scaffold`: an empty workspace is their actual precondition. It stops on the first unsuccessful run;
+use a single case to resume. CLI version, commit, dirty status, options and local reports are recorded under
+`evals/results/`. Model and judge overrides are optional; record explicit versions for release comparisons.
 
-Reports are written to `evals/results/<timestamp>/` and are gitignored.
+Raw invocation for an initialized workspace (after `npm ci`):
 
-## Cases
+```sh
+claude plugin eval . --case context-year-of-history --runs 1 --ablation none --trust-plugin --scaffold --no-publish
+```
 
-| Case | Situation | What it checks |
-| :--- | :--- | :--- |
-| `total-beginner` | Never programmed; asks to start | Init asks one question at a time, probes without a questionnaire, does not lecture |
-| `experienced-new-to-rust` | Senior Python developer, no Rust | Skips false-beginner material, probes ownership rather than syntax, starts high |
-| `overconfident-beginner` | Claims to know ownership; cannot explain a move | Claim recorded as a claim, probe contradicts it, no contradiction of the learner's self-image |
-| `ownership-struggle` | Repeatedly blocked on the borrow checker | Hint ladder, never writes the fix, records the weakness |
-| `returning-after-a-week` | Comes back after 7 days | Resumes the exact recorded next action without asking what to study |
-| `forgot-old-concept` | Cannot recall a concept demonstrated a month ago | Review happens, state is demoted honestly, no re-teaching of the whole topic |
-| `overly-advanced-project` | "I want to build a distributed database" | Goal preserved, gap named, route built, no immediate building and no "too advanced" |
-| `asks-claude-to-write-everything` | "Just write the function for me" | Solution withheld, hint rung given, learner asked to attempt first |
-| `compiler-error` | Pastes E0502 and asks what it means | Learner diagnoses first; term explained; no working code pasted |
-| `weak-git` | Believes `reset --hard` is safe | Command's effect explained before it runs, safer alternative taught |
-| `strong-git` | Comfortable with branches and rebase | Not condescended to; moves to PR workflow; no basic Git drilling |
-| `chinese-code-comment` | Wrote a Chinese comment in Rust source | Comment not deleted silently; converted with the learner; rule stated |
-| `poor-english-comment` | English comment restates the code | Comment quality taught, wording corrected, both the "when" and the "how" |
-| `http-networking` | Moving into HTTP clients | HTTP concepts before `reqwest`; one API step at a time, not the whole crate |
-| `async-rust` | First async work | Prerequisites checked (`Send`/`Sync`/threads), no `async` before they are in place |
-| `becoming-independent` | Solves things unaided, writes PRs | Mentor hands over ownership, reduces scaffolding, stops teaching what is known |
-| `windows-chinese-path` | Workspace path with Chinese characters and spaces | Path handled without corruption or surprise; no unrequested move |
-| `windows-gbk-console-output` | CP936 console renders Chinese output as mojibake | Mojibake not treated as failure; no permanent code-page change; structured output preferred |
-| `windows-powershell-5` | Learner on Windows PowerShell 5.1 | Advice fits 5.1; no reliance on PowerShell 7 or on encoding defaults |
-| `curriculum-lazy-loading` | HTTP client objective | Only the networking reference is opened; no unrelated domains |
-| `context-year-of-history` | Learner with a year of history | Hot state only; no archive, no notes, no history recap |
-| `context-many-notes` | Learner with hundreds of notes | Notes are not loaded automatically |
-| `status-compact-summary` | Progress across many domains | Domains not concepts; no numbers; one screen; no bulk evidence read |
-| `status-detail-on-request` | Asks for networking detail | Detail for that area only, from that area's evidence |
-| `codebase-reading-unfamiliar` | Wants an unfamiliar repo explained | Reading method instead of a summary; the learner reads the code |
-| `crypto-api-misuse` | AEAD with a fixed nonce | Nonce reuse identified as the serious flaw; learner fixes it; no invented crypto |
-| `init-impatient-learner` | "Stop asking questions, just set it up" | Interview ends immediately; no wall of questions in response |
+Pass forward-slash paths (`D:/repo` not `D:\repo`) on Windows: Claude Code 2.1.270 native Windows stripped
+backslashes from harness script paths (exit 127, zero model turns). Forward slashes avoid that path handling.
 
-## A limitation you should know about
+For a write case, add `--allow-tools Write Edit`. Do not grant these globally to a mixed suite. No current case
+requires granting Bash to the model. Scaffolding itself executes reviewed Bash/Node on the host before the
+model starts; it must target only the empty temporary cwd supplied by the harness.
 
-The eval harness feeds the run's transcript to the judge model as text. When the mentor correctly replies in
-Chinese - which it is supposed to do at English stages A and B - that Chinese arrives at the judge as mojibake on
-a host whose locale does not match, and the judge then scores the answer as if it were nonsense.
+## Invocation style
 
-The consequence: **judge-scored graders are unreliable for cases whose correct answer is in Chinese.** This was
-measured, not assumed - the crypto case was inspected directly, and the mentor's reply correctly identified nonce
-reuse, explained the keystream and forgery consequences, flagged the `unwrap`, and handed the fix back, while the
-judge scored it 0.00 on three graders.
+Case prompts address the mentor in natural language ("Let's continue my Rust apprenticeship."), never with a
+leading `/rust-learn-*` slash command. A slash command is expanded by the client into a command-message
+injection, so the skill loads without a Skill tool call and the mandatory `skill-loaded` grader cannot observe
+it — the early smoke runs scored 0.75–0.88 on otherwise-correct teaching turns for exactly this reason.
+Natural-language requests are a documented invocation path and produce a verifiable Skill call. The contract
+checks reject any prompt body that starts with `/rust-learn`.
 
-Two mitigations are used in this suite:
+## Case inventory and fixtures
 
-- **Prefer mechanical graders where the claim is mechanical.** A `regex` grader over `last_message` or the trace
-  does not care what language the reply is in. `no-numbers`, `domains-not-concepts` and `no-solution-in-reply` are
-  all structural checks for exactly this reason.
-- **Say so in the rubric.** Where a judge is still the right tool, the grader states that the response may be in
-  the learner's language and that substance is what is judged. This helps but does not fully fix it.
+[fixtures/catalog.mjs](fixtures/catalog.mjs) is the inventory of all 29 cases: target skill, read/write mode,
+domain and concrete next action. `npm run eval -- --list` prints it. Each directory has the learner input in
+`prompt.md`, a scaffold pointer in `case.yaml`, and its individual pass/fail criteria under `graders/`.
 
-Running the suite under a UTF-8 locale, or on a host where the judge receives the transcript correctly, is the
-real fix. Until then, treat a low score on a Chinese-language case as a prompt to **read the transcript yourself**
-before concluding the skill misbehaved. `--keep-temp` preserves it.
+All scenarios use [fixtures/build.mjs](fixtures/build.mjs). Continue/status fixtures have a marker at the run
+root, matching the real upward discovery algorithm; no recursive child search is needed. The registry is
+redirected by an evaluation-only system instruction to `.eval/registry/workspaces.yaml`. Host registries
+must never be read. Initialization targets `./learner-workspace`, never a real user path.
 
-## Grader types used
+The history cases include 365 historical sessions plus the latest session, 365 notes, 1,200 evidence entries
+and archived logs. Every built fixture stores a SHA256 baseline in `.eval/before.json` for post-run checks.
+The fixture builder rejects nonempty targets and the repository itself.
 
-- `llm` graders carry the rubric for behaviour — most cases use one for "the learner did the work" and one for
-  "the response was small enough".
-- `regex` graders over `last_message` catch mechanical failures: a fenced code block containing a full solution, a
-  message long enough to be a lecture, a mastery percentage.
-- `tool_used` / `tool_order` graders over `files` and `trace` check that files were written where they should be and
-  that state was updated only after evidence.
+## What the graders measure
 
-## Adding a case
+Every case requires the intended Skill call. Read-only cases assert no Write/Edit/Bash use; write cases
+receive explicit tool grants. State updates are graded against file contents, retaining original evidence.
+A valid Rust snippet and a real E0502 snippet are compiled by the contract checks, so the judge cannot reward
+invented compiler errors. Reported forgetting alone calls for a probe, not a capability demotion. The first
+natural-language smoke runs after the invocation fix: total-beginner 1.00 (8/8), async-rust 1.00 (8/8),
+init-impatient-learner 1.00 (4/4, workspace written), status-compact-summary 0.88 — the mentor listed only the
+domains it judged relevant instead of one line per domain, a genuine product failure to re-run against, not a
+grader artifact.
 
-1. Create `evals/<case-name>/prompt.md` with frontmatter (`tags`, `runs`, `max_turns`) and the learner's message as
-   the body.
-2. Add `graders/<name>.md` files. One rubric per file, written as concrete PASS and FAIL conditions.
-3. Run it with `--runs 1 --ablation none` while iterating; switch to the default two-arm run when the case is stable.
-4. Keep a case when it catches something real. Delete cases that only test the grader's own wording.
+Markdown rubric bodies contain the actual PASS/FAIL criteria. Do not also set a short `criteria` frontmatter
+field: the client may use it instead of the detailed body. Do not use `focus: files` for reading or updates:
+it contains only newly created filenames. Use trace for actions and `{source: file, path: ...}` for contents.
+LLM trace graders see a limited excerpt. The runner also audits the full trace, checks cold-file reads and
+hot-state line budgets, rejects unexpected tools/delegation, compares read-only fixture contents, and checks
+preserved evidence and written state. Its audit has negative regression tests; actual recovery still needs
+multi-session model tests.
+These semantics were checked against [the official eval reference](https://code.claude.com/docs/en/plugin-evals).
 
-See `docs/architecture.md` for how the eval suite fits into the rest of the repository, and the Claude Code
-documentation for the full case format.
+## Release evidence
+
+A score of 0.8 alone is insufficient. Infrastructure errors, unrun cases and skipped graders must remain
+separate from product failures. Skill loading, no fabricated evidence, read-only isolation and preservation
+of history are hard gates. Inspect every run and retain actual model/CLI versions and grader verdicts.
+The full 29-case three-run suite and multi-session recovery/retention scenarios are not yet certified.

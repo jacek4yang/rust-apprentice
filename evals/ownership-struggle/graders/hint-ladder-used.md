@@ -1,6 +1,5 @@
 ---
 type: llm
-criteria: |
-  Assistance is given in increasing steps.
 ---
-PASS if the mentor gives one hint and asks the learner to try again, and only escalates if they fail. FAIL if the mentor immediately produces the complete corrected function with an explanation.
+PASS if the mentor asks for the actual diagnostic or calling context before escalating assistance for the
+apparently valid function. FAIL if the mentor invents a fix or immediately rewrites it.

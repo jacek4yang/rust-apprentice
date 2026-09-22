@@ -1,7 +1,5 @@
 ---
 type: llm
-criteria: |
-  The mentor teaches at most one small unit per turn.
 ---
 PASS if the mentor's output leaves the learner with one thing to do: a single question, prediction, or
 small task, with the teaching around it kept short.

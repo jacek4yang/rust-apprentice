@@ -6,6 +6,10 @@ The complete on-disk state, in one page. The operational versions live in
 [`core/learner-model.md`](../skills/rust-learn-continue/references/core/learner-model.md); this file is the summary
 you read when changing the format.
 
+Authority: workspace.md owns identity/discovery/safe marker paths; state-migration.md owns version handling;
+mastery-model.md owns state vocabulary; learner-model.md and state-format.md own file fields; review.md owns
+scheduling. This page summarizes those contracts, not an alternative specification.
+
 State is tiered by read frequency: **hot** (every session, bounded forever), **warm** (on demand), **cold**
 (rarely). The tiering is the mechanism that keeps a years-old workspace cheap to start; see
 [`core/context-budget.md`](../skills/rust-learn-continue/references/core/context-budget.md).
@@ -14,7 +18,8 @@ State is tiered by read frequency: **hot** (every session, bounded forever), **w
 
 ### Per-user registry (outside the workspace)
 
-`<state dir>/workspaces.yaml`, where `<state dir>` is `$RUST_APPRENTICE_STATE_DIR`, else `$CLAUDE_SKILLS_STATE_DIR`,
+`<state dir>/workspaces.yaml`, where `<state dir>` is `$RUST_APPRENTICE_STATE_DIR`, else `$CLAUDE_SKILLS_STATE_DIR`
+(a legacy Claude Code compatibility fallback),
 else the platform default (Windows `%APPDATA%\rust-apprentice\`, macOS `~/Library/Application Support/rust-apprentice/`,
 Linux `$XDG_STATE_HOME/rust-apprentice/` or `~/.local/state/rust-apprentice/`).
 
@@ -49,7 +54,7 @@ at the workspace root with these field names.
 | File | Required keys |
 | :--- | :--- |
 | `state/learner-model.md` | `schema`, `updated`, `stage`, `independence`, `english_stage`, `git_level`, `current`, `domains`, `weaknesses` (max 5), `blockers`, `goals` |
-| `state/progress.md` | `updated`, `phase`, `Objective`, `Next action`, `Blockers`, `Paused` |
+| `state/progress.md` | `updated`, `phase`, `project`, `domain`, `Objective`, `Next action`, `Blockers`, `Paused` |
 | `state/review-queue.md` | `updated`, `Due` table, `Scheduled` table, `Retired` list |
 | `state/log.md` | dated single lines |
 | `state/sessions/<YYYY-MM-DD>.md` | `focus`, `did`, `evidence`, `left`, `next` |
@@ -89,11 +94,14 @@ Definitions and the evidence required for each transition are in
 
 | Last result | Next due |
 | :--- | :--- |
-| fail | 1–2 days |
-| partial | 3 days |
-| pass, 1st–2nd attempt | 7 days |
-| pass, 3rd attempt | 21 days |
-| pass after a ≥ 1 month gap | retire |
+| fail | 1 day; reset clean streak |
+| partial | 3 days; reset clean streak |
+| pass, clean streak 1–2 in distinct sessions | 7 days |
+| pass, clean streak 3+ | 21 days |
+| clean pass in a later session after a ≥ 30 day gap | retire |
+
+`Attempts` is total observed retrievals, not successful streaks. Queue rows also carry `Clean streak`,
+`Last attempted` and `Last session`; same-session retries do not advance the streak. See core/review.md.
 
 ## English stages
 
@@ -122,8 +130,11 @@ These are what the checks in `tests/repo-checks.mjs` and the model's instruction
 The `schema:` field is `rust-apprentice/1`. If the format ever changes incompatibly:
 
 - Bump the suffix.
-- `/rust-learn-continue` reads the version from the marker and migrates forward in place, telling the learner what
-  changed.
+- `/rust-learn-continue` classifies the exact version and required fields before following marker paths. Only
+  recognized legacy layouts migrate; unknown versions, including future versions, are never rewritten.
+- Same-version missing fields/files require recovery. Status is read-only and reports the need for recovery.
+- Preserve a unique verified backup and an interruption record; update the marker last. Repeating recovery
+  must not duplicate evidence or replace valid files.
 - Never rewrite a workspace without saying so, and never migrate by discarding evidence.
 
 The full procedure, including recovering a half-damaged workspace, is in

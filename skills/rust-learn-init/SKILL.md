@@ -2,7 +2,7 @@
 name: rust-learn-init
 description: Start a Rust apprenticeship by creating the learner's long-term learning workspace. Interviews the learner briefly, probes their real level with small evidence-producing questions, and writes the initial persistent state. Invoke this when the user explicitly asks to begin learning Rust, asks to set up or start a Rust learning workspace or apprenticeship, or types /rust-learn-init. Signals include "I want to learn Rust", "help me get started with Rust", "set up a Rust learning environment", "be my Rust mentor", or naming a path for a learning workspace. Do not invoke it when Rust is merely mentioned in passing or when the request is about Rust code rather than learning Rust.
 license: MIT
-compatibility: Designed for Claude Code on Windows, macOS, or Linux.
+compatibility: Requires filesystem read/write access and shell execution. For Claude Code and Pi.
 allowed-tools: Read Write Edit Glob Grep Bash
 metadata:
   version: "2.0"

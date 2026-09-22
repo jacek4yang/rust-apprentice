@@ -26,14 +26,14 @@ Normally needs: light hints
   Ownership & Memory          mostly independent
   Data Structures & Algorithms  guided
   Operating Systems           introduced
-  Networking                  developing
+  Networking                  practiced
   Cryptography                introduced
   Concurrency                 guided
   Async Rust                  guided
-  Software Architecture       developing
+  Software Architecture       guided
   Codebase Reading            practiced
   Git / GitHub                practiced
-  Engineering English         developing
+  Engineering English         guided
 
 Strongest right now
   Ownership and borrowing — solved three borrow-checker problems unaided this month.
